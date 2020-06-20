@@ -12,7 +12,7 @@ interface between something or someone with the information stored in it / with 
 
 
 What is expected by a DBMS is to allow the user / developer to create a structure in which he wants to store information. What can also be called a schema.
-Most often this is expected to be done in a language that is designed to create these schemas.
+Most often this is expected to be done in a language that is designed to create these schemas.	
 
 
 The system is also expected to be asked / queried for information and content that is stored within the database.
