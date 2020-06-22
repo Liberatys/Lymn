@@ -28,7 +28,7 @@ impl QueryTraverser {
             return None;
         }
         self.current_index += 1;
-        return Some(self.query[self.current_index]);
+        return Some(self.query[self.current_index - 1]);
     }
 
     pub fn current_index(&self) -> usize {
@@ -37,12 +37,27 @@ impl QueryTraverser {
 
     /// checks if the query contains a forward character in the Vec
     pub fn has_next(&self) -> bool {
-        return !self.current_index == self.query_length - 1;
+        if self.query_length == 0 {
+            return false; // would result in an usize overflow if not checked
+        }
+        if self.current_index >= self.query_length - 1 {
+            return false;
+        }
+        return true;
     }
 
     //TODO: implement this method
     pub fn peek_till_next_occurence(&self, character_to_occure: char) -> Vec<char> {
-        unimplemented!();
+        let mut peek_result_set: Vec<char> = Vec::new();
+        for index in self.current_index + 1..self.query_length {
+            let current_value: char = self.query[index];
+            if character_to_occure == current_value {
+                return peek_result_set;
+            } else {
+                peek_result_set.push(current_value);
+            }
+        }
+        return Vec::new();
     }
 
     /// peek ahead of the current set index
@@ -70,5 +85,46 @@ impl QueryTraverser {
 
     fn get_count_of_chars_forward(&self) -> usize {
         return self.query_length - self.current_index;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn peek_next_character_test() {
+        let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
+        assert_eq!(traverser.next().unwrap(), 'S');
+    }
+
+    #[test]
+    fn get_current_index_test() {
+        let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
+        for index in 0.."SELECT * FROM Testing".len() {
+            assert_eq!(index, traverser.current_index);
+            traverser.next();
+        }
+    }
+
+    #[test]
+    fn has_next_test() {
+        let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
+        assert_eq!(true, traverser.has_next());
+    }
+
+    #[test]
+    fn peek_till_next_occurence_test() {
+        let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
+        traverser.next();
+        assert_eq!(vec!['L'], traverser.peek_till_next_occurence('E'));
+        traverser = QueryTraverser::new(String::from("'TESTING'"));
+        let result_vec: Vec<char> = String::from("TESTING").chars().collect();
+        assert_eq!(result_vec, traverser.peek_till_next_occurence('\''));
+    }
+
+    #[test]
+    fn has_next_empty_query_input() {
+        let mut traverser = QueryTraverser::new(String::from(""));
+        assert_eq!(false, traverser.has_next());
     }
 }
