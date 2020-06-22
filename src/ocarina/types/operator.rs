@@ -1,6 +1,7 @@
-
-pub enum Operator{
+pub enum Operator {
     EQUAL,
+    AND,
+    OR,
     NOT_EQUAL,
     GREATER,
     LESS,
@@ -12,7 +13,6 @@ pub enum Operator{
     IN(bool),
     IS_NULL(bool),
     // IS holds two bools that determine whether it is (inverted) true or (inverted) false
-    IS(bool,bool),
-    //! 
+    IS(bool, bool),
     AS,
 }

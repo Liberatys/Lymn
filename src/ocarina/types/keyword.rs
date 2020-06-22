@@ -1,5 +1,11 @@
-//Statements that are used in the decleration of 
-pub enum Declarative{
+pub enum Keyword {
+    DECLARATIVE(Declarative),
+    StructureType(StructureType),
+    ALTERING(Altering),
+}
+
+//Statements that are used in the decleration of
+pub enum Declarative {
     CREATE(String),
     UPDATE(String),
     DROP(String),
@@ -7,17 +13,15 @@ pub enum Declarative{
     TRUNCATE(String),
 }
 
-
-pub enum StructureType{
+pub enum StructureType {
     TABLE(String),
     DATABASE(String),
     VIEW(String),
 }
 
-
 // Maybe remove some of the restricting query words
-//Statements that are used in queries
-pub enum Altering{
+// Statements that are used in queries
+pub enum Altering {
     SELECT(String),
     INSERT(String),
     UPDATE(String),
@@ -34,5 +38,4 @@ pub enum Altering{
     UNION(String),
     EXISTS(String),
     LIKE(String),
-    //! CASE
 }
