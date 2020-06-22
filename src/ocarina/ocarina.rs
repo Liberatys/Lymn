@@ -24,16 +24,16 @@ impl OcarinaParser {
     ///     SELECT * FROM test WHERE x = 2 + 5;
     ///     
     ///     SELECT * FROM test WHERE x = 7;
-    pub fn sanitize_query(&mut self) {}
+    pub fn sanitize_query(&mut self) {
+        unimplemented!();
+    }
 
     pub fn generate_token_list(&mut self) {
         self.determinator
             .iterate_over_query_and_collect_token_list();
     }
 
-    pub fn determine_type_of_token(&mut self) {}
-
-    pub fn seperate_queries(self) -> Vec<String> {
-        return Vec::new();
+    pub fn determine_type_of_token(&mut self) {
+        unimplemented!();
     }
 }

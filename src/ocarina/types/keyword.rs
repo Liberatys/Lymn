@@ -1,9 +1,10 @@
+#[derive(PartialEq, Debug)]
 pub enum Keyword {
     DECLARATIVE(Declarative),
     StructureType(StructureType),
     ALTERING(Altering),
 }
-
+#[derive(PartialEq, Debug)]
 //Statements that are used in the decleration of
 pub enum Declarative {
     CREATE(String),
@@ -13,12 +14,13 @@ pub enum Declarative {
     TRUNCATE(String),
 }
 
+#[derive(PartialEq, Debug)]
 pub enum StructureType {
     TABLE(String),
     DATABASE(String),
     VIEW(String),
 }
-
+#[derive(PartialEq, Debug)]
 // Maybe remove some of the restricting query words
 // Statements that are used in queries
 pub enum Altering {

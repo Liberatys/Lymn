@@ -1,3 +1,4 @@
+#[derive(PartialEq, Debug)]
 pub enum DataType {
     STRING(String),
     INTEGER(i64),

@@ -15,6 +15,10 @@ impl QueryTraverser {
         return traverser;
     }
 
+    pub fn skip_next_n_indexes(&mut self, indexes: usize) {
+        self.current_index += indexes;
+    }
+
     ///
     /// return the next char in Vec<char>
     ///
@@ -46,10 +50,9 @@ impl QueryTraverser {
         return true;
     }
 
-    //TODO: implement this method
     pub fn peek_till_next_occurence(&self, character_to_occure: char) -> Vec<char> {
         let mut peek_result_set: Vec<char> = Vec::new();
-        for index in self.current_index + 1..self.query_length {
+        for index in self.current_index..self.query_length {
             let current_value: char = self.query[index];
             if character_to_occure == current_value {
                 return peek_result_set;
@@ -116,8 +119,10 @@ mod tests {
     fn peek_till_next_occurence_test() {
         let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
         traverser.next();
+        traverser.next();
         assert_eq!(vec!['L'], traverser.peek_till_next_occurence('E'));
         traverser = QueryTraverser::new(String::from("'TESTING'"));
+        traverser.next();
         let result_vec: Vec<char> = String::from("TESTING").chars().collect();
         assert_eq!(result_vec, traverser.peek_till_next_occurence('\''));
     }
