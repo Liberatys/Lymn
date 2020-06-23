@@ -19,14 +19,6 @@ impl QueryTraverser {
         self.current_index += indexes;
     }
 
-    ///
-    /// return the next char in Vec<char>
-    ///
-    /// if current_index is set on the last index of query
-    ///     return None
-    /// else
-    ///     return Some(query[current_index])
-    ///
     pub fn next(&mut self) -> Option<char> {
         if self.has_next() == false {
             return None;
@@ -39,7 +31,6 @@ impl QueryTraverser {
         return self.current_index;
     }
 
-    /// checks if the query contains a forward character in the Vec
     pub fn has_next(&self) -> bool {
         if self.query_length == 0 {
             return false; // would result in an usize overflow if not checked
@@ -63,13 +54,6 @@ impl QueryTraverser {
         return Vec::new();
     }
 
-    /// peek ahead of the current set index
-    /// by a given count
-    /// the result set is returned as a Vec<char>
-    ///
-    /// if given count to peek is greater then the remaining size
-    /// the given count is overwritten with the remaining size of query:Vec<char>
-    ///
     pub fn peek(&self, mut indexes: usize) -> Vec<char> {
         let mut peek_result_set = Vec::new();
         let remaining_size_of_query: usize = self.get_count_of_chars_forward();

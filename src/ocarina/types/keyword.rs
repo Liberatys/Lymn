@@ -1,43 +1,76 @@
 #[derive(PartialEq, Debug)]
 pub enum Keyword {
-    DECLARATIVE(Declarative),
-    StructureType(StructureType),
-    ALTERING(Altering),
-}
-#[derive(PartialEq, Debug)]
-//Statements that are used in the decleration of
-pub enum Declarative {
-    CREATE(String),
-    UPDATE(String),
-    DROP(String),
-    DELETE(String),
-    TRUNCATE(String),
+    TABLE,
+    DATABASE,
+    VIEW,
+    CREATE,
+    UPDATE,
+    DROP,
+    DELETE,
+    TRUNCATE,
+    SELECT,
+    INSERT,
+    SET,
+    FROM,
+    WHERE,
+    AND,
+    OR,
+    LIMIT,
+    GROUP,
+    HAVING,
+    IN,
+    JOIN,
+    UNION,
+    EXISTS,
+    LIKE,
+    UNKNOWN,
 }
 
-#[derive(PartialEq, Debug)]
-pub enum StructureType {
-    TABLE(String),
-    DATABASE(String),
-    VIEW(String),
+pub fn is_keyword(value: &str) -> Keyword {
+    let is_query_keyword = is_query_keyword(value);
+    if is_query_keyword != Keyword::UNKNOWN {
+        return is_query_keyword;
+    }
+    let is_declarative_keyword = is_declarative_keyword(value);
+    if is_declarative_keyword != Keyword::UNKNOWN {
+        return is_declarative_keyword;
+    }
+    let is_structural_keyword = is_structural_keyword(value);
+    if is_structural_keyword != Keyword::UNKNOWN {
+        return is_structural_keyword;
+    }
+    return Keyword::UNKNOWN;
 }
-#[derive(PartialEq, Debug)]
-// Maybe remove some of the restricting query words
-// Statements that are used in queries
-pub enum Altering {
-    SELECT(String),
-    INSERT(String),
-    UPDATE(String),
-    SET(String),
-    FROM(String),
-    WHERE(String),
-    AND(String),
-    OR(String),
-    LIMIT(String),
-    GROUP(String),
-    HAVING(String),
-    IN(String),
-    JOIN(String),
-    UNION(String),
-    EXISTS(String),
-    LIKE(String),
+
+fn is_declarative_keyword(value: &str) -> Keyword {
+    let result_keyword = match value {
+        "CREATE" => Keyword::CREATE,
+        "DROP" => Keyword::DROP,
+        _ => Keyword::UNKNOWN,
+    };
+    return result_keyword;
 }
+
+fn is_query_keyword(value: &str) -> Keyword {
+    let result_keyword = match value {
+        "SELECT" => Keyword::SELECT,
+        "UPDATE" => Keyword::UPDATE,
+        "FROM" => Keyword::FROM,
+        "WHERE" => Keyword::WHERE,
+        "IN" => Keyword::IN,
+        "INSERT" => Keyword::INSERT,
+        _ => Keyword::UNKNOWN,
+    };
+    return result_keyword;
+}
+
+fn is_structural_keyword(value: &str) -> Keyword {
+    let result_keyword = match value {
+        "TABLE" => Keyword::TABLE,
+        "DATABASE" => Keyword::DATABASE,
+        "VIEW" => Keyword::VIEW,
+        _ => Keyword::UNKNOWN,
+    };
+    return result_keyword;
+}
+

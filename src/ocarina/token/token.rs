@@ -18,6 +18,10 @@ impl Token {
         return token;
     }
 
+    pub fn get_token_type(self) -> TokenType {
+        return self.token_type;
+    }
+
     pub fn evaulate_token_type(&mut self) {
         unimplemented!()
     }
