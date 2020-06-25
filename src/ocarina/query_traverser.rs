@@ -41,7 +41,7 @@ impl QueryTraverser {
         return true;
     }
 
-    pub fn peek_till_next_occurence(&self, character_to_occure: char) -> Vec<char> {
+    pub fn peek_till_next_occurrence(&self, character_to_occure: char) -> Vec<char> {
         let mut peek_result_set: Vec<char> = Vec::new();
         for index in self.current_index..self.query_length {
             let current_value: char = self.query[index];
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn has_next_test() {
-        let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
+        let traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
         assert_eq!(true, traverser.has_next());
     }
 
@@ -104,11 +104,11 @@ mod tests {
         let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
         traverser.next();
         traverser.next();
-        assert_eq!(vec!['L'], traverser.peek_till_next_occurence('E'));
+        assert_eq!(vec!['L'], traverser.peek_till_next_occurrence('E'));
         traverser = QueryTraverser::new(String::from("'TESTING'"));
         traverser.next();
         let result_vec: Vec<char> = String::from("TESTING").chars().collect();
-        assert_eq!(result_vec, traverser.peek_till_next_occurence('\''));
+        assert_eq!(result_vec, traverser.peek_till_next_occurrence('\''));
     }
 
     #[test]

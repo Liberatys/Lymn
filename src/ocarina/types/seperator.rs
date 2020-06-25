@@ -1,3 +1,1 @@
-
-pub enum Seperator{
-}
+pub enum Seperator {}

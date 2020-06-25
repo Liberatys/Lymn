@@ -37,16 +37,13 @@ impl Determinator {
         };
     }
 
-    pub fn add_token_to_token_list(&mut self, expected_type: Option<String>) {
+    pub fn add_token_to_current_token_list(&mut self, expected_type: Option<String>) {
         self.token_list[self.current_token_list_index].push(determine_type_of_token(
             self.current_token_buffer.clone(),
             expected_type,
         ));
     }
 
-    //TODO: refactor 'switch' case... extract methods
-    //TODO: maybe extract the switch into a structure that has methods for each match case
-    // like a state-machine
     pub fn iterate_over_query_and_collect_token_list(&mut self) {
         self.token_list.push(Vec::new());
         while self.traverser.has_next() {
@@ -57,38 +54,33 @@ impl Determinator {
             match current_character {
                 '\'' => {
                     // ===
-                    let string_vec: Vec<char> = self.traverser.peek_till_next_occurence('\'');
+                    let string_vec: Vec<char> = self.traverser.peek_till_next_occurrence('\'');
                     self.current_token_buffer = string_vec.into_iter().collect();
                     if self.current_token_buffer.len() > 0 {
                         self.traverser
                             .skip_next_n_indexes(self.current_token_buffer.len());
-                        self.add_token_to_token_list(Some(String::from("string")));
+                        self.add_token_to_current_token_list(Some(String::from("string")));
                         self.current_token_buffer.clear();
                     }
-                }
-                '0'..='9' => {
-                    // Integer literal
-                    self.current_token_buffer.push(current_character);
                 }
                 ';' => {
                     // End of a query
                     if self.current_token_buffer.len() > 0 {
-                        self.add_token_to_token_list(None);
+                        self.add_token_to_current_token_list(None);
                         self.current_token_buffer.clear();
                     }
                     self.token_list.push(Vec::new());
                     self.current_token_list_index += 1;
                 }
                 ' ' => {
-                    // Blank == a token has ended
                     if self.current_token_buffer.len() > 0 {
-                        self.add_token_to_token_list(None);
+                        self.add_token_to_current_token_list(None);
                         self.current_token_buffer.clear();
                     }
                 }
                 '=' => {
                     if self.current_token_buffer.len() > 0 {
-                        self.add_token_to_token_list(None);
+                        self.add_token_to_current_token_list(None);
                         self.current_token_buffer.clear();
                     }
                     self.current_token_buffer.push(current_character);
@@ -104,7 +96,7 @@ impl Determinator {
             }
         }
         if self.current_token_buffer.len() > 0 {
-            self.add_token_to_token_list(None);
+            self.add_token_to_current_token_list(None);
             self.current_token_buffer.clear();
         }
     }
@@ -112,14 +104,6 @@ impl Determinator {
     pub fn get_token_list(self) -> Vec<Vec<Token>> {
         return self.token_list;
     }
-}
-
-pub fn get_start_point_from_end_point(end: usize, string: &str) -> usize {
-    return end - string.len();
-}
-
-fn get_end_point_from_start(start: usize, string: &str) -> usize {
-    return start + (string.len() - 1);
 }
 
 pub fn determine_type_of_token(value: String, expected_type: Option<String>) -> Token {
@@ -140,6 +124,7 @@ pub fn determine_type_of_token(value: String, expected_type: Option<String>) -> 
     };
 }
 
+/// easy constructor for tokens when a TokenType is known at creation time
 fn token_builder(value: &str, token_type: TokenType) -> Token {
     let mut token = Token::new(String::from(value));
     token.set_token_type(token_type);

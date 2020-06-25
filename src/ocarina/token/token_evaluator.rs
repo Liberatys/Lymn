@@ -30,10 +30,8 @@ impl TokenEvaluator {
     pub fn invoke_method(&self, method_ident: &str, value: String) -> token::TokenType {
         let method = self.method_map.get(method_ident);
         let token_type = match method {
-            None => return token::TokenType::UNDETERMINED,
-            Some(v) => {
-                return v(value);
-            }
+            None => token::TokenType::UNDETERMINED,
+            Some(v) => v(value),
         };
         return token_type;
     }
