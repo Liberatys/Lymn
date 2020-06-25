@@ -3,16 +3,12 @@ use super::super::types;
 pub struct Token {
     token_type: TokenType,
     token_value: String,
-    start: usize,
-    end: usize,
 }
 
 impl Token {
-    pub fn new(token_value: String, start: usize, end: usize) -> Token {
+    pub fn new(token_value: String) -> Token {
         let token = Token {
             token_value: token_value,
-            start: start,
-            end: end,
             token_type: TokenType::UNDETERMINED,
         };
         return token;

@@ -35,7 +35,7 @@ impl QueryTraverser {
         if self.query_length == 0 {
             return false; // would result in an usize overflow if not checked
         }
-        if self.current_index >= self.query_length - 1 {
+        if self.current_index >= self.query_length {
             return false;
         }
         return true;

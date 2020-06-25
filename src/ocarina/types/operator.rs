@@ -17,3 +17,4 @@ pub enum Operator {
     IS(bool, bool),
     AS,
 }
+

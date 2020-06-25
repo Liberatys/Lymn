@@ -59,6 +59,10 @@ fn is_query_keyword(value: &str) -> Keyword {
         "WHERE" => Keyword::WHERE,
         "IN" => Keyword::IN,
         "INSERT" => Keyword::INSERT,
+        "SET" => Keyword::SET,
+        "HAVING" => Keyword::HAVING,
+        "JOIN" => Keyword::JOIN,
+        "EXISTS" => Keyword::EXISTS,
         _ => Keyword::UNKNOWN,
     };
     return result_keyword;

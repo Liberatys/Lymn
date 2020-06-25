@@ -2,6 +2,7 @@ use super::super::query_traverser;
 use super::super::types;
 use super::token::Token;
 use super::token::TokenType;
+use types::operator::Operator;
 
 pub struct Determinator {
     traverser: query_traverser::QueryTraverser,
@@ -36,6 +37,13 @@ impl Determinator {
         };
     }
 
+    pub fn add_token_to_token_list(&mut self, expected_type: Option<String>) {
+        self.token_list[self.current_token_list_index].push(determine_type_of_token(
+            self.current_token_buffer.clone(),
+            expected_type,
+        ));
+    }
+
     //TODO: refactor 'switch' case... extract methods
     //TODO: maybe extract the switch into a structure that has methods for each match case
     // like a state-machine
@@ -45,20 +53,18 @@ impl Determinator {
             // a call to unwrap is reasonable because the outer while loop would break if no next
             // characters was available in the query vec
             let current_character = self.traverser.next().unwrap();
+            //TODO: add last buffer to tokenlist after loop has ended;
             match current_character {
                 '\'' => {
+                    // ===
                     let string_vec: Vec<char> = self.traverser.peek_till_next_occurence('\'');
                     self.current_token_buffer = string_vec.into_iter().collect();
-                    self.traverser
-                        .skip_next_n_indexes(self.current_token_buffer.len());
-                    println!("{}", self.current_token_buffer);
-                    self.token_list[self.current_token_list_index].push(determine_type_of_token(
-                        self.current_token_buffer.clone(),
-                        self.traverser.current_index() - self.current_token_buffer.len(),
-                        self.traverser.current_index(),
-                        Some(String::from("string")),
-                    ));
-                    self.current_token_buffer.clear();
+                    if self.current_token_buffer.len() > 0 {
+                        self.traverser
+                            .skip_next_n_indexes(self.current_token_buffer.len());
+                        self.add_token_to_token_list(Some(String::from("string")));
+                        self.current_token_buffer.clear();
+                    }
                 }
                 '0'..='9' => {
                     // Integer literal
@@ -67,57 +73,77 @@ impl Determinator {
                 ';' => {
                     // End of a query
                     if self.current_token_buffer.len() > 0 {
-                        self.token_list[self.current_token_list_index].push(
-                            determine_type_of_token(
-                                self.current_token_buffer.clone(),
-                                self.traverser.current_index() - self.current_token_buffer.len(),
-                                self.traverser.current_index(),
-                                None,
-                            ),
-                        );
+                        self.add_token_to_token_list(None);
                         self.current_token_buffer.clear();
-                        self.token_list.push(Vec::new());
                     }
+                    self.token_list.push(Vec::new());
                     self.current_token_list_index += 1;
                 }
                 ' ' => {
                     // Blank == a token has ended
-                    self.token_list[self.current_token_list_index].push(determine_type_of_token(
-                        self.current_token_buffer.clone(),
-                        self.traverser.current_index() - self.current_token_buffer.len(),
-                        self.traverser.current_index(),
-                        None,
+                    if self.current_token_buffer.len() > 0 {
+                        self.add_token_to_token_list(None);
+                        self.current_token_buffer.clear();
+                    }
+                }
+                '=' => {
+                    if self.current_token_buffer.len() > 0 {
+                        self.add_token_to_token_list(None);
+                        self.current_token_buffer.clear();
+                    }
+                    self.current_token_buffer.push(current_character);
+                    self.token_list[self.current_token_list_index].push(token_builder(
+                        self.current_token_buffer.clone().as_ref(),
+                        TokenType::OPERATOR(Operator::EQUAL),
                     ));
                     self.current_token_buffer.clear();
                 }
                 _ => {
-                    unimplemented!();
+                    self.current_token_buffer.push(current_character);
                 }
             }
         }
+        if self.current_token_buffer.len() > 0 {
+            self.add_token_to_token_list(None);
+            self.current_token_buffer.clear();
+        }
+    }
+
+    pub fn get_token_list(self) -> Vec<Vec<Token>> {
+        return self.token_list;
     }
 }
 
-pub fn determine_type_of_token(
-    value: String,
-    start_index: usize,
-    end_index: usize,
-    expected_type: Option<String>,
-) -> Token {
+pub fn get_start_point_from_end_point(end: usize, string: &str) -> usize {
+    return end - string.len();
+}
+
+fn get_end_point_from_start(start: usize, string: &str) -> usize {
+    return start + (string.len() - 1);
+}
+
+pub fn determine_type_of_token(value: String, expected_type: Option<String>) -> Token {
     return match expected_type {
         Some(expected_type_literal) => {
-            let mut token = Token::new(value.clone(), start_index, end_index);
+            let mut token = Token::new(value.clone());
             let token_type = TokenType::from_string(expected_type_literal, value);
             token.set_token_type(token_type);
             token
         }
+
         None => {
-            let mut token = Token::new(value.clone(), start_index, end_index);
-            let token_type = token_evaluator.invoke_method("is_keyword", value);
+            let mut token = Token::new(value.clone());
+            let token_type = token_evaluator.invoke_method("is_keyword", value.to_uppercase());
             token.set_token_type(token_type);
             token
         }
     };
+}
+
+fn token_builder(value: &str, token_type: TokenType) -> Token {
+    let mut token = Token::new(String::from(value));
+    token.set_token_type(token_type);
+    return token;
 }
 
 #[cfg(test)]
@@ -128,7 +154,7 @@ mod tests {
     #[test]
     fn iterate_over_query_and_collect_token_list_test() {
         let mut determinator = Determinator::new(String::from("'SELECT'"));
-        let mut token = Token::new(String::from("SELECT"), 1, 1 + "SELECT".len());
+        let mut token = Token::new(String::from("SELECT"));
         determinator.iterate_over_query_and_collect_token_list();
         token.set_token_type(TokenType::DATA(types::data_type::DataType::STRING(
             String::from("SELECT"),
@@ -147,10 +173,34 @@ mod tests {
         test_and_result_map.insert("FROM", TokenType::KEYWORD(Keyword::FROM));
         test_and_result_map.insert("IN", TokenType::KEYWORD(Keyword::IN));
         test_and_result_map.insert("WHERE", TokenType::KEYWORD(Keyword::WHERE));
-
         for (token_value, expected_result) in test_and_result_map {
-            let result_token = determine_type_of_token(String::from(token_value), 0, 0, None);
+            let result_token = determine_type_of_token(String::from(token_value), None);
             assert_eq!(result_token.get_token_type(), expected_result);
         }
     }
+
+    #[test]
+    fn iterate_over_query_and_collect_token_list_integeration() {
+        let query: String = String::from("SELECT * FROM tablet WHERE test = 'GOGO'");
+        let mut determinator = Determinator::new(query.clone());
+        determinator.iterate_over_query_and_collect_token_list();
+        let seperated: Vec<&str> = query.split(" ").collect();
+        assert_eq!(
+            determinator.token_list[0],
+            vec![
+                token_builder("SELECT", TokenType::KEYWORD(Keyword::SELECT)),
+                token_builder("*", TokenType::UNDETERMINED),
+                token_builder("FROM", TokenType::KEYWORD(Keyword::FROM)),
+                token_builder("tablet", TokenType::UNDETERMINED),
+                token_builder("WHERE", TokenType::KEYWORD(Keyword::WHERE)),
+                token_builder("test", TokenType::UNDETERMINED),
+                token_builder("=", TokenType::OPERATOR(Operator::EQUAL)),
+                token_builder(
+                    "GOGO",
+                    TokenType::DATA(types::data_type::DataType::STRING(String::from("GOGO")))
+                ),
+            ]
+        );
+    }
 }
+
