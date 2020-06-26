@@ -1,5 +1,5 @@
 use super::super::types;
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     token_type: TokenType,
     token_value: String,
@@ -27,7 +27,7 @@ impl Token {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenType {
     KEYWORD(types::keyword::Keyword),
     OPERATOR(types::operator::Operator),

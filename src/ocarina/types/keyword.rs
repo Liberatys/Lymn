@@ -1,4 +1,6 @@
-#[derive(PartialEq, Debug)]
+use super::super::token::token::Token;
+
+#[derive(PartialEq, Debug, Clone)]
 pub enum Keyword {
     TABLE,
     DATABASE,

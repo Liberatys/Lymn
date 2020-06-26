@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Operator {
     EQUAL,
     AND,
@@ -17,4 +17,3 @@ pub enum Operator {
     IS(bool, bool),
     AS,
 }
-

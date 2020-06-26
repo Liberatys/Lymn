@@ -50,7 +50,6 @@ impl Determinator {
             // a call to unwrap is reasonable because the outer while loop would break if no next
             // characters was available in the query vec
             let current_character = self.traverser.next().unwrap();
-            //TODO: add last buffer to tokenlist after loop has ended;
             match current_character {
                 '\'' => {
                     // ===
