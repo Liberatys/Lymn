@@ -5,7 +5,6 @@ use token::token::Token;
 
 pub struct OcarinaParser {
     optimize: bool,
-    token_list: Vec<Vec<Token>>,
     pub determinator: Determinator,
     pub compressor: compressor::Compressor,
 }
@@ -14,7 +13,6 @@ impl OcarinaParser {
     pub fn new(statement: &str) -> OcarinaParser {
         let parser = OcarinaParser {
             optimize: false,
-            token_list: Vec::new(),
             determinator: Determinator::new(statement.to_owned()),
             compressor: compressor::Compressor::new(),
         };

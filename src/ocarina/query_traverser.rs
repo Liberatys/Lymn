@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn has_next_test() {
-        let traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
+        let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
         assert_eq!(true, traverser.has_next());
     }
 
