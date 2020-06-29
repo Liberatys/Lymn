@@ -2,7 +2,7 @@ use super::error;
 use std::fmt;
 #[derive(Debug)]
 pub enum SQLError {
-    Unknown_Query_Type(String),
+    UnknownQueryType(String),
 }
 
 impl error::Error for SQLError {
@@ -13,6 +13,9 @@ impl error::Error for SQLError {
 
 impl fmt::Display for SQLError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        return match self {
+            SQLError::UnknownQueryType(v) => write!(f, "{}", v),
+        };
         write!(f, "{:?}", self)
     }
 }

@@ -5,6 +5,7 @@ pub trait Table {
     //TODO: create a row object
     fn get_row(&self, index: usize) -> Vec<String>;
     fn get_colum(&self, index: usize) -> Vec<String>;
-    fn insert_row(&mut self, row: Vec<String>) -> bool;
+    fn insert_row(&mut self, row: Vec<&str>) -> bool;
     fn insert_new_column(&mut self, column: String) -> bool;
+    fn get_index_of_column(&self, name: &str) -> usize;
 }

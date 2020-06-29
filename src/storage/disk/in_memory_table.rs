@@ -39,6 +39,7 @@ impl io::StorageEntity for InMemoryTabel {
             .insert(self.name.clone(), self.clone());
         true
     }
+
     fn read(&mut self) -> bool {
         let new_table = &HASHMAP.lock().unwrap()[&self.name];
         self.database_name = new_table.database_name.clone();
@@ -92,9 +93,9 @@ impl table::Table for InMemoryTabel {
         return self.values[index].clone();
     }
 
-    fn insert_row(&mut self, row: std::vec::Vec<std::string::String>) -> bool {
+    fn insert_row(&mut self, row: std::vec::Vec<&str>) -> bool {
         for x in 0..row.len() {
-            self.values[x].push(row[x].clone());
+            self.values[x].push(row[x].to_string());
         }
         true
     }
@@ -103,6 +104,10 @@ impl table::Table for InMemoryTabel {
         self.columns.push(column);
         self.values.push(Vec::new());
         true
+    }
+    fn get_index_of_column(&self, name: &str) -> usize {
+        let index = self.columns.iter().position(|r| r == name).unwrap();
+        return index;
     }
 }
 
@@ -115,7 +120,7 @@ mod tests {
     fn test_storage_in_memory() {
         let mut table = InMemoryTabel::new(String::from("TABLE"), String::from("DATABASE"));
         table.insert_new_column("test".to_owned());
-        table.insert_row(vec![String::from("value")]);
+        table.insert_row(vec![("value")]);
         table.write();
         table = InMemoryTabel::new(String::from("TABLE"), String::from("DATABASE"));
         table.read();

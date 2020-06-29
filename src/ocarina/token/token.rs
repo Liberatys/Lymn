@@ -14,6 +14,10 @@ impl Token {
         return token;
     }
 
+    pub fn get_token_value(&self) -> String {
+        return self.token_value.clone();
+    }
+
     pub fn get_token_type(self) -> TokenType {
         return self.token_type;
     }

@@ -26,11 +26,13 @@ pub enum Keyword {
     EXISTS,
     LIKE,
     UNKNOWN,
+    INTO,
 }
 
 pub fn is_keyword(value: &str) -> Keyword {
     let result_keyword = match value {
         "CREATE" => Keyword::CREATE,
+        "INTO" => Keyword::INTO,
         "DROP" => Keyword::DROP,
         "SELECT" => Keyword::SELECT,
         "UPDATE" => Keyword::UPDATE,

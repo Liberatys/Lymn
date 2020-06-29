@@ -4,6 +4,8 @@ use std::io;
 mod executor;
 mod ocarina;
 mod storage;
+use storage::disk::io::StorageEntity;
+use storage::disk::table::Table;
 
 fn trim_newline(s: &mut String) {
     if s.ends_with('\n') {
@@ -18,6 +20,7 @@ fn main() {
     println!("{}", "Lymn Interface - Version 0.0.1");
     let mut stdin = io::stdin();
     let input = &mut String::new();
+
     loop {
         input.clear();
         match stdin.read_line(input) {
@@ -26,12 +29,24 @@ fn main() {
                 let mut ocarina = ocarina::ocarina::OcarinaParser::new(input);
                 ocarina.generate_token_list();
                 let resulting_token_list = ocarina.compress_token_list();
-                println!("{:?}", &resulting_token_list);
                 for x in 0..resulting_token_list.len() {
                     if resulting_token_list[x].len() == 0 {
                         continue;
                     }
-                    let executor = executor::executor::Executor::new(&resulting_token_list[x]);
+                    let mut table = storage::disk::in_memory_table::InMemoryTabel::new(
+                        String::from("tab"),
+                        String::from("data"),
+                    );
+                    table.insert_new_column("t".to_string());
+                    table.insert_row(vec!["value"]);
+                    table.insert_row(vec!["value"]);
+                    table.insert_row(vec!["value"]);
+                    table.insert_row(vec!["value"]);
+                    table.insert_row(vec!["value"]);
+                    table.insert_row(vec!["value"]);
+                    table.write();
+                    let mut executor =
+                        executor::executor::Executor::new(&resulting_token_list[x], table);
                     println!("{}", executor.evaluate_query());
                 }
             }
