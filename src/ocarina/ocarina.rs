@@ -21,9 +21,9 @@ impl OcarinaParser {
 
     /// Iterate over the query string and cleanup syntax and formating as well as summarization if
     /// possible:
-    ///     SELECT * FROM test WHERE x = 2 + 5;
+    /// SELECT * FROM test WHERE x = 2 + 5;
     ///     
-    ///     SELECT * FROM test WHERE x = 7;
+    /// SELECT * FROM test WHERE x = 7;
 
     pub fn sanitize_query(&mut self) {
         unimplemented!();

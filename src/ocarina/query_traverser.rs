@@ -100,6 +100,12 @@ mod tests {
     }
 
     #[test]
+    fn has_next_negative_test() {
+        let mut traverser = QueryTraverser::new(String::from(""));
+        assert_eq!(false, traverser.has_next());
+    }
+
+    #[test]
     fn peek_till_next_occurence_test() {
         let mut traverser = QueryTraverser::new(String::from("SELECT * FROM Testing"));
         traverser.next();

@@ -65,7 +65,6 @@ impl<'a> Executor<'a> {
                 let result_cols = self
                     .table
                     .get_colum(self.table.get_index_of_column(&_value));
-
                 return format!("{:?}", result_cols);
             }
             query_type::QueryType::INSERT => {}

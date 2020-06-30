@@ -5,6 +5,14 @@ authors = ["Nick Anthony <Ilithium@protonmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "Lymn"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bin"
+path = "src/main.rs"
+
 
 [dependencies]
 lazy_static = "1.4.0"

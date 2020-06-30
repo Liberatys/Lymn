@@ -51,3 +51,25 @@ pub fn is_keyword(value: &str) -> Keyword {
     };
     return result_keyword;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    #[test]
+    fn test_keyword_detection() {
+        let mut result_map: HashMap<&str, Keyword> = HashMap::new();
+        result_map.insert("SELECT", Keyword::SELECT);
+        result_map.insert("FROM", Keyword::FROM);
+        result_map.insert("WHERE", Keyword::WHERE);
+        result_map.insert("SET", Keyword::SET);
+        result_map.insert("JOIN", Keyword::JOIN);
+        result_map.insert("UPDATE", Keyword::UPDATE);
+        result_map.insert("INTO", Keyword::INTO);
+        result_map.insert("DROP", Keyword::DROP);
+        result_map.insert("INSERT", Keyword::INSERT);
+        for (key, value) in result_map {
+            assert_eq!(is_keyword(key), value);
+        }
+    }
+}

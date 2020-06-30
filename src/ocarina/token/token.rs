@@ -22,10 +22,6 @@ impl Token {
         return self.token_type;
     }
 
-    pub fn evaulate_token_type(&mut self) {
-        unimplemented!()
-    }
-
     pub fn set_token_type(&mut self, token_type: TokenType) {
         self.token_type = token_type;
     }
