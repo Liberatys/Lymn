@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub trait Table {
     fn load_column_definition(&mut self) -> bool;
     fn read_column_definition(&self) -> bool;
@@ -8,4 +10,6 @@ pub trait Table {
     fn insert_row(&mut self, row: Vec<&str>) -> bool;
     fn insert_new_column(&mut self, column: String) -> bool;
     fn get_index_of_column(&self, name: &str) -> usize;
+    fn has_column(&self, column_name: &str) -> bool;
+    fn insert_row_by_column(&mut self, value_map: HashMap<&str, String>) -> bool;
 }

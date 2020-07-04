@@ -39,6 +39,7 @@ impl TokenType {
     pub fn from_string(identifier: String, value: String) -> TokenType {
         let result = match identifier.as_ref() {
             "string" => TokenType::DATA(types::data_type::DataType::STRING(value)),
+            "list" => TokenType::DATA(types::data_type::DataType::LIST(value)),
             _ => TokenType::UNDETERMINED,
         };
         return result;

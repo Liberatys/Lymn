@@ -3,6 +3,7 @@ pub enum DataType {
     STRING(String),
     INTEGER(i64),
     CHARACTER(char),
+    LIST(String),
 }
 
 impl DataType {

@@ -1,5 +1,5 @@
-use super::io;
-use super::table;
+use super::io::StorageEntity;
+use super::table::Table;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -29,11 +29,15 @@ impl InMemoryTabel {
         };
         return table;
     }
+
+    pub fn get_columns(&self) -> Vec<String> {
+        return self.columns.clone();
+    }
 }
 
-impl io::StorageEntity for InMemoryTabel {
+impl StorageEntity for InMemoryTabel {
     fn write(&self) -> bool {
-        HASHMAP
+        let return_val = HASHMAP
             .lock()
             .unwrap()
             .insert(self.name.clone(), self.clone());
@@ -68,7 +72,7 @@ impl io::StorageEntity for InMemoryTabel {
     }
 }
 
-impl table::Table for InMemoryTabel {
+impl Table for InMemoryTabel {
     fn load_column_definition(&mut self) -> bool {
         todo!()
     }
@@ -108,6 +112,32 @@ impl table::Table for InMemoryTabel {
     fn get_index_of_column(&self, name: &str) -> usize {
         let index = self.columns.iter().position(|r| r == name).unwrap();
         return index;
+    }
+    fn has_column(&self, column_name: &str) -> bool {
+        let index: i32 = match self.columns.iter().position(|r| r == column_name) {
+            Some(v) => v as i32,
+            None => -1,
+        };
+        if index == -1 {
+            return false;
+        }
+        return true;
+    }
+
+    fn insert_row_by_column(&mut self, value_map: std::collections::HashMap<&str, String>) -> bool {
+        let mut value_vec: Vec<String> = Vec::new();
+        for key in self.columns.iter() {
+            match value_map.get(&key.as_ref()) {
+                Some(v) => value_vec.push(v.to_string()),
+                None => {
+                    value_vec.push(String::from(" "));
+                }
+            }
+        }
+        for x in 0..value_vec.len() {
+            self.values[x].push(value_vec[x].clone());
+        }
+        true
     }
 }
 

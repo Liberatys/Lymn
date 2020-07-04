@@ -22,3 +22,15 @@ Ocarina also performs a basic optimisation of the query. The query is later opti
 part of the system to ensure that queries run at an reasonable speed in the system.
 
 [Ocarina docu](./docu/ocarina.md)
+
+
+
+
+## Building
+
+
+
+
+## Testing
+//TODO: implement a query queue in the executor
+

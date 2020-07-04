@@ -27,6 +27,7 @@ pub enum Keyword {
     LIKE,
     UNKNOWN,
     INTO,
+    VALUES,
 }
 
 pub fn is_keyword(value: &str) -> Keyword {
@@ -47,6 +48,7 @@ pub fn is_keyword(value: &str) -> Keyword {
         "TABLE" => Keyword::TABLE,
         "DATABASE" => Keyword::DATABASE,
         "VIEW" => Keyword::VIEW,
+        "VALUES" => Keyword::VALUES,
         _ => Keyword::UNKNOWN,
     };
     return result_keyword;

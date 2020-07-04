@@ -20,7 +20,13 @@ fn main() {
     println!("{}", "Lymn Interface - Version 0.0.1");
     let mut stdin = io::stdin();
     let input = &mut String::new();
-
+    let mut table = storage::disk::in_memory_table::InMemoryTabel::new(
+        String::from("tab"),
+        String::from("data"),
+    );
+    table.insert_new_column("t".to_owned());
+    table.insert_new_column("d".to_owned());
+    table.write();
     loop {
         input.clear();
         match stdin.read_line(input) {
@@ -33,20 +39,8 @@ fn main() {
                     if resulting_token_list[x].len() == 0 {
                         continue;
                     }
-                    let mut table = storage::disk::in_memory_table::InMemoryTabel::new(
-                        String::from("tab"),
-                        String::from("data"),
-                    );
-                    table.insert_new_column("t".to_string());
-                    table.insert_row(vec!["value"]);
-                    table.insert_row(vec!["value"]);
-                    table.insert_row(vec!["value"]);
-                    table.insert_row(vec!["value"]);
-                    table.insert_row(vec!["value"]);
-                    table.insert_row(vec!["value"]);
-                    table.write();
                     let mut executor =
-                        executor::executor::Executor::new(&resulting_token_list[x], table);
+                        executor::executor::Executor::new(&resulting_token_list[x], table.clone());
                     println!("{}", executor.evaluate_query());
                 }
             }

@@ -62,6 +62,20 @@ impl Determinator {
                         self.current_token_buffer.clear();
                     }
                 }
+                '(' => {
+                    if self.current_token_buffer.len() > 0 {
+                        self.add_token_to_current_token_list(None);
+                        self.current_token_buffer.clear();
+                    }
+                    let string_vec: Vec<char> = self.traverser.peek_till_next_occurrence(')');
+                    self.current_token_buffer = string_vec.into_iter().collect();
+                    if self.current_token_buffer.len() > 0 {
+                        self.traverser
+                            .skip_next_n_indexes(self.current_token_buffer.len() + 1);
+                        self.add_token_to_current_token_list(Some(String::from("list")));
+                        self.current_token_buffer.clear();
+                    }
+                }
                 ';' => {
                     // End of a query
                     if self.current_token_buffer.len() > 0 {
@@ -113,7 +127,6 @@ pub fn determine_type_of_token(value: String, expected_type: Option<String>) -> 
             token.set_token_type(token_type);
             token
         }
-
         None => {
             let mut token = Token::new(value.clone());
             let token_type = token_evaluator.invoke_method("is_keyword", value.to_uppercase());
