@@ -9,7 +9,6 @@ use super::query_type;
 use super::sql_error::SQLError;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use std::iter::Map;
 
 pub struct Executor<'a> {
     query_plan: &'a Vec<Token>,
@@ -41,14 +40,21 @@ impl<'a> Executor<'a> {
                 .to_string();
             }
             query_type::QueryType::SELECT => {
-                if self.query_plan.len() < 4 {
+                let minimum_query_lenght = 4; // SELECT [col] FROM [table]
+                let selector_keyword_index = 2;
+                let table_name_index = 3;
+                let query_column_index = 1;
+                if self.query_plan.len() < minimum_query_lenght {
                     return SQLError::UnknownQueryType(format!(
                         "{}",
                         "Query {} is to small to be a select query"
                     ))
                     .to_string();
                 }
-                match self.query_plan[2].clone().get_token_type() {
+                match self.query_plan[selector_keyword_index]
+                    .clone()
+                    .get_token_type()
+                {
                     TokenType::KEYWORD(v) => {
                         if v != Keyword::FROM {
                             return SQLError::UnknownQueryType(format!(
@@ -61,12 +67,41 @@ impl<'a> Executor<'a> {
                     }
                     _ => {}
                 }
-                let column_to_query = &self.query_plan[1];
-                let _value: String = column_to_query.get_token_value();
-                let from = &self.query_plan[3];
-                let table_name = from.get_token_value();
+                let column_to_query = &self.query_plan[query_column_index];
+                let mut is_multy_column_selection = false;
+                let table_name = &self.query_plan[table_name_index];
+                let table_name = table_name.get_token_value();
                 self.table.name = table_name;
                 self.table.read();
+                match column_to_query.clone().get_token_type() {
+                    TokenType::DATA(v) => match v {
+                        types::data_type::DataType::LIST(_) => {
+                            is_multy_column_selection = true;
+                        }
+                        _ => {}
+                    },
+                    _ => {}
+                }
+                if is_multy_column_selection {
+                    match column_to_query.clone().get_token_type() {
+                        TokenType::DATA(types::data_type::DataType::LIST(v)) => match v {
+                            _ => {
+                                let columns_to_query =
+                                    convert_string_to_vec(column_to_query.get_token_value());
+                                let column_vectors =
+                                    self.query_column_values_for_multiple_columns(columns_to_query);
+                                return format!("{:?}", column_vectors);
+                            }
+                        },
+                        _ => {}
+                    }
+                }
+                let _value: String = column_to_query.get_token_value();
+                if _value == "*" {
+                    let column_vectors =
+                        self.query_column_values_for_multiple_columns(self.table.get_columns());
+                    return format!("{:?}", column_vectors);
+                }
                 let result_cols = self
                     .table
                     .get_colum(self.table.get_index_of_column(&_value));
@@ -128,6 +163,17 @@ impl<'a> Executor<'a> {
             query_type::QueryType::UPDATE => {}
         }
         String::from("no error")
+    }
+
+    pub fn query_column_values_for_multiple_columns(
+        &self,
+        columns: Vec<String>,
+    ) -> Vec<Vec<String>> {
+        let mut column_vectors: Vec<Vec<String>> = Vec::new();
+        for x in columns {
+            column_vectors.push(self.table.get_colum(self.table.get_index_of_column(&x)));
+        }
+        column_vectors
     }
 }
 
