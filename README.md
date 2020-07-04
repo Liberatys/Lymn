@@ -13,6 +13,15 @@ Containing parts of the system:
 - [ ] Buffer-Manager
 
 
+
+## Example of usage
+
+	INSERT INTO [table_name] (optional)(column_names) VALUES(value)
+
+	SELECT (columns) FROM [table_name]
+
+
+
 ## SQL-Parser {Ocarina}
 
 Ocarina is the sql compiler/parser/processor that is turing an sql statement into a query plan
@@ -34,3 +43,8 @@ part of the system to ensure that queries run at an reasonable speed in the syst
 ## Testing
 //TODO: implement a query queue in the executor
 
+
+# Disclaimers
+
+Currently only the functionality in the example part is working.
+The storage of the database is currently in memory and is used for testing.
