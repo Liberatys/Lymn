@@ -31,13 +31,9 @@ impl<'a> Executor<'a> {
             query_type::QueryType::from_primary_query_token(self.query_plan[0].clone());
         match query_type {
             query_type::QueryType::NONE => {
-                return SQLError::UnknownQueryType(format!(
-                    "Query could not be evaulated
-                    first token doesn't seem to be valid starting token
-                    Token: {:?}",
-                    self.query_plan[0].clone()
-                ))
-                .to_string();
+                return String::from(
+                    "The given query was not able to be recognized as valid query",
+                );
             }
             query_type::QueryType::SELECT => {
                 let minimum_query_lenght = 4; // SELECT [col] FROM [table]
@@ -45,11 +41,9 @@ impl<'a> Executor<'a> {
                 let table_name_index = 3;
                 let query_column_index = 1;
                 if self.query_plan.len() < minimum_query_lenght {
-                    return SQLError::UnknownQueryType(format!(
-                        "{}",
-                        "Query {} is to small to be a select query"
-                    ))
-                    .to_string();
+                    return String::from(
+                        "Query length does not match the minimum length of SELECT query",
+                    );
                 }
                 match self.query_plan[selector_keyword_index]
                     .clone()
@@ -57,12 +51,9 @@ impl<'a> Executor<'a> {
                 {
                     TokenType::KEYWORD(v) => {
                         if v != Keyword::FROM {
-                            return SQLError::UnknownQueryType(format!(
-                                "{}",
-                                "second keyword was not FROM therefore the
-                            SELECT query could not be executed"
-                            ))
-                            .to_string();
+                            return String::from(
+                                "Keywords found in given Query do not match the query plan",
+                            );
                         }
                     }
                     _ => {}

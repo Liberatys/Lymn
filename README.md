@@ -13,13 +13,14 @@ Containing parts of the system:
 - [ ] Buffer-Manager
 
 
-
 ## Example of usage
+
 
 	INSERT INTO [table_name] (optional)(column_names) VALUES(value)
 
-	SELECT (columns) FROM [table_name]
-
+	SELECT (columns | *) FROM [table_name]
+		
+	CREATE TABLE [table_name]([col_name] [col_type],...)
 
 
 ## SQL-Parser {Ocarina}
@@ -32,16 +33,10 @@ part of the system to ensure that queries run at an reasonable speed in the syst
 
 [Ocarina docu](./docu/ocarina.md)
 
-
-
-
 ## Building
 
 
-
-
 ## Testing
-//TODO: implement a query queue in the executor
 
 
 # Disclaimers
