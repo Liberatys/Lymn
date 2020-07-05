@@ -118,9 +118,9 @@ impl<'a> Executor<'a> {
                     }
                 }
                 let table_name = &self.query_plan[2].get_token_value();
-                let index_number_of_columns = self.table.get_columns().len();
-                self.table.read();
                 self.table.name = table_name.to_string();
+                self.table.read();
+                let index_number_of_columns = self.table.get_columns().len();
                 match &self.query_plan[3].clone().get_token_type() {
                     TokenType::DATA(types::data_type::DataType::LIST(v)) => {
                         let token_value = v;
@@ -158,6 +158,55 @@ impl<'a> Executor<'a> {
                 }
                 self.table.write();
                 return String::from(format!("Index: {}", 1));
+            }
+            query_type::QueryType::CREATE => {
+                let creation_type_index = 1;
+                let creation_type = self.query_plan[creation_type_index].clone();
+                match creation_type.get_token_type() {
+                    TokenType::KEYWORD(Keyword::DATABASE) => {
+                        let database_name_index = 2;
+                        let _database_name = self.query_plan[database_name_index]
+                            .clone()
+                            .get_token_value();
+                    }
+                    TokenType::KEYWORD(Keyword::TABLE) => {
+                        let table_name_index = 2;
+                        let table_column_definition_index = 3;
+                        let table_name =
+                            self.query_plan[table_name_index].clone().get_token_value();
+                        let column_definition = self.query_plan[table_column_definition_index]
+                            .clone()
+                            .get_token_type();
+                        match column_definition {
+                            TokenType::DATA(types::data_type::DataType::LIST(v)) => {
+                                let column_list = convert_string_to_vec(v);
+                                if self.table.table_exist(&table_name) {
+                                    return String::from(format!(
+                                        "Table: {} already exists",
+                                        table_name
+                                    ));
+                                }
+                                self.table = InMemoryTabel::new(
+                                    String::from(table_name.clone()),
+                                    String::from("data"),
+                                );
+                                for column in column_list {
+                                    let def_vec: Vec<&str> = column.trim().split(" ").collect();
+                                    if def_vec.len() > 2 {
+                                        return String::from("Invalid column definition");
+                                    }
+                                    self.table.insert_new_column(def_vec[0].to_owned());
+                                }
+                                self.table.write();
+                                return String::from(format!("Table: {} created", table_name));
+                            }
+                            _ => return String::from("Invalid table definition"),
+                        }
+                    }
+                    _ => {
+                        return String::from("CREATE with given argument is not implemented yet");
+                    }
+                }
             }
             query_type::QueryType::DELETE => {}
             query_type::QueryType::UPDATE => {}

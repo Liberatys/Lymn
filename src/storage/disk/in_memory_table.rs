@@ -33,11 +33,18 @@ impl InMemoryTabel {
     pub fn get_columns(&self) -> Vec<String> {
         return self.columns.clone();
     }
+
+    pub fn table_exist(&self, table_name: &str) -> bool {
+        match HASHMAP.lock().unwrap().get(table_name) {
+            Some(_) => return true,
+            None => return false,
+        }
+    }
 }
 
 impl StorageEntity for InMemoryTabel {
     fn write(&self) -> bool {
-        let return_val = HASHMAP
+        let _return_val = HASHMAP
             .lock()
             .unwrap()
             .insert(self.name.clone(), self.clone());
@@ -139,6 +146,10 @@ impl Table for InMemoryTabel {
         }
         true
     }
+}
+
+pub fn default_in_memory_constructor() -> InMemoryTabel {
+    return InMemoryTabel::new(String::from(" "), String::from(" "));
 }
 
 #[cfg(test)]

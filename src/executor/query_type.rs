@@ -6,6 +6,7 @@ pub enum QueryType {
     UPDATE,
     INSERT,
     DELETE,
+    CREATE,
     NONE,
 }
 
@@ -16,6 +17,7 @@ impl QueryType {
             TokenType::KEYWORD(Keyword::UPDATE) => QueryType::UPDATE,
             TokenType::KEYWORD(Keyword::INSERT) => QueryType::INSERT,
             TokenType::KEYWORD(Keyword::DELETE) => QueryType::DELETE,
+            TokenType::KEYWORD(Keyword::CREATE) => QueryType::CREATE,
             _ => QueryType::NONE,
         }
     }
