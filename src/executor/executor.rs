@@ -2,17 +2,16 @@ use super::super::ocarina::token::token::Token;
 use super::super::ocarina::token::token::TokenType;
 use super::super::ocarina::types;
 use super::super::ocarina::types::keyword::Keyword;
-use super::super::storage::disk::in_memory_table::InMemoryTabel;
+use super::super::storage::disk::disk_table::DiskTable;
 use super::super::storage::disk::io::StorageEntity;
 use super::super::storage::disk::table::Table;
 use super::query_type;
-use super::sql_error::SQLError;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::sync::Mutex;
 pub struct Executor<'a> {
     query_plan: &'a Vec<Token>,
-    table: InMemoryTabel,
+    table: DiskTable,
 }
 
 lazy_static! {
@@ -38,7 +37,7 @@ impl IndexIncrement {
 }
 
 impl<'a> Executor<'a> {
-    pub fn new(query_plan: &'a std::vec::Vec<Token>, table: InMemoryTabel) -> Self {
+    pub fn new(query_plan: &'a std::vec::Vec<Token>, table: DiskTable) -> Self {
         let executor = Executor {
             query_plan: query_plan,
             table: table,
@@ -82,7 +81,7 @@ impl<'a> Executor<'a> {
                 let mut is_multy_column_selection = false;
                 let table_name = &self.query_plan[table_name_index];
                 let table_name = table_name.get_token_value();
-                self.table.name = table_name;
+                self.table.set_table_name(table_name);
                 self.table.read();
                 match column_to_query.clone().get_token_type() {
                     TokenType::DATA(v) => match v {
@@ -129,7 +128,7 @@ impl<'a> Executor<'a> {
                     }
                 }
                 let table_name = &self.query_plan[2].get_token_value();
-                self.table.name = table_name.to_string();
+                self.table.set_table_name(table_name.to_string());
                 self.table.read();
                 let index_number_of_columns = self.table.get_columns().len();
                 match &self.query_plan[3].clone().get_token_type() {
@@ -197,7 +196,7 @@ impl<'a> Executor<'a> {
                                         table_name
                                     ));
                                 }
-                                self.table = InMemoryTabel::new(
+                                self.table = DiskTable::new(
                                     String::from(table_name.clone()),
                                     String::from("data"),
                                 );
@@ -208,6 +207,7 @@ impl<'a> Executor<'a> {
                                     }
                                     self.table.insert_new_column(def_vec[0].to_owned());
                                 }
+                                self.table.create();
                                 self.table.write();
                                 return String::from(format!("Table: {} created", table_name));
                             }

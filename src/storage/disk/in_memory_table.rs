@@ -29,17 +29,6 @@ impl InMemoryTabel {
         };
         return table;
     }
-
-    pub fn get_columns(&self) -> Vec<String> {
-        return self.columns.clone();
-    }
-
-    pub fn table_exist(&self, table_name: &str) -> bool {
-        match HASHMAP.lock().unwrap().get(table_name) {
-            Some(_) => return true,
-            None => return false,
-        }
-    }
 }
 
 impl StorageEntity for InMemoryTabel {
@@ -145,6 +134,16 @@ impl Table for InMemoryTabel {
             self.values[x].push(value_vec[x].clone());
         }
         true
+    }
+    fn get_columns(&self) -> Vec<String> {
+        return self.columns.clone();
+    }
+
+    fn table_exist(&self, table_name: &str) -> bool {
+        match HASHMAP.lock().unwrap().get(table_name) {
+            Some(_) => return true,
+            None => return false,
+        }
     }
 }
 

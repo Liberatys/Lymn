@@ -10,6 +10,8 @@ pub trait Table {
     fn insert_row(&mut self, row: Vec<&str>) -> bool;
     fn insert_new_column(&mut self, column: String) -> bool;
     fn get_index_of_column(&self, name: &str) -> usize;
+    fn table_exist(&self, table_name: &str) -> bool;
+    fn get_columns(&self) -> Vec<String>;
     fn has_column(&self, column_name: &str) -> bool;
     fn insert_row_by_column(&mut self, value_map: HashMap<&str, String>) -> bool;
 }

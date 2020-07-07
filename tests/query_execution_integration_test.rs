@@ -14,10 +14,8 @@ mod tests {
         let mut ocarina = ocarina::ocarina::OcarinaParser::new("SELECT t FROM tab");
         ocarina.generate_token_list();
         let resulting_token_list = ocarina.compress_token_list();
-        let mut table = storage::disk::in_memory_table::InMemoryTabel::new(
-            String::from("tab"),
-            String::from("data"),
-        );
+        let mut table =
+            storage::disk::disk_table::DiskTable::new(String::from("tab"), String::from("data"));
         table.insert_new_column("t".to_string());
         table.insert_row(vec!["value"]);
         table.insert_row(vec!["value"]);
@@ -49,7 +47,7 @@ mod tests {
         );
         ocarina.generate_token_list();
         let resulting_token_list = ocarina.compress_token_list();
-        let mut table = storage::disk::in_memory_table::default_in_memory_constructor();
+        let mut table = storage::disk::disk_table::default_disk_constructor();
         for i in 0..2 {
             let mut executor =
                 executor::executor::Executor::new(&resulting_token_list[i], table.clone());
@@ -74,10 +72,8 @@ mod tests {
         let mut ocarina = ocarina::ocarina::OcarinaParser::new("INSERT INTO tab t:value");
         ocarina.generate_token_list();
         let resulting_token_list = ocarina.compress_token_list();
-        let mut table = storage::disk::in_memory_table::InMemoryTabel::new(
-            String::from("tab"),
-            String::from("data"),
-        );
+        let mut table =
+            storage::disk::disk_table::DiskTable::new(String::from("tab"), String::from("data"));
         table.insert_new_column("t".to_string());
         table.write();
         let mut executor = executor::executor::Executor::new(&resulting_token_list[0], table);
