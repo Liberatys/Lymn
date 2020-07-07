@@ -42,6 +42,29 @@ mod tests {
             executor.evaluate_query()
         );
     }
+    #[test]
+    fn test_insertion_and_retrieval() {
+        let mut ocarina = ocarina::ocarina::OcarinaParser::new(
+            "CREATE TABLE dat(col val, go ta);INSERT INTO dat (col) VALUES(t)(g)(t);SELECT col FROM dat",
+        );
+        ocarina.generate_token_list();
+        let resulting_token_list = ocarina.compress_token_list();
+        let mut table = storage::disk::in_memory_table::default_in_memory_constructor();
+        for i in 0..2 {
+            let mut executor =
+                executor::executor::Executor::new(&resulting_token_list[i], table.clone());
+            println!("{:?}", executor.evaluate_query());
+        }
+        let mut executor =
+            executor::executor::Executor::new(&resulting_token_list[2], table.clone());
+        assert_eq!(
+            format!(
+                "{:?}",
+                vec![String::from("t"), String::from("g"), String::from("t"),]
+            ),
+            executor.evaluate_query()
+        );
+    }
 
     #[test]
     #[ignore]

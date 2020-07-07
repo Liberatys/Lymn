@@ -9,13 +9,33 @@ use super::query_type;
 use super::sql_error::SQLError;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-
+use std::sync::Mutex;
 pub struct Executor<'a> {
     query_plan: &'a Vec<Token>,
     table: InMemoryTabel,
 }
 
-static mut CURRENT_INDEX: usize = 0;
+lazy_static! {
+    static ref CURRENT_INDEX: Mutex<IndexIncrement> = Mutex::new({ IndexIncrement::new() });
+}
+
+struct IndexIncrement {
+    index: usize,
+}
+
+impl IndexIncrement {
+    pub fn new() -> IndexIncrement {
+        return IndexIncrement { index: 0 };
+    }
+
+    pub fn increment(&mut self) {
+        self.index += 1
+    }
+
+    pub fn get_index(&self) -> usize {
+        return self.index;
+    }
+}
 
 impl<'a> Executor<'a> {
     pub fn new(query_plan: &'a std::vec::Vec<Token>, table: InMemoryTabel) -> Self {
