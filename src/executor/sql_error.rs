@@ -14,7 +14,7 @@ impl error::Error for SQLError {
 impl fmt::Display for SQLError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self {
-            SQLError::UnknownQueryType(v) => write!(f, "{}", v),
+            SQLError::UnknownQueryType(v) => write!(f, "Unknown query: {}", v),
         };
         write!(f, "{:?}", self)
     }

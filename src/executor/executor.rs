@@ -5,12 +5,14 @@ use super::super::ocarina::types::keyword::Keyword;
 use super::super::storage::disk::io::StorageEntity;
 use super::super::storage::disk::table::Table;
 use super::query_type;
+use super::sql_error::SQLError;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::sync::Mutex;
 
 pub struct Executor<'a, T: Table + StorageEntity> {
     query_plan: &'a Vec<Token>,
+    query_split: Vec<&'a str>,
     table: T,
 }
 
@@ -41,8 +43,13 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
         let executor = Executor {
             query_plan: query_plan,
             table: table,
+            query_split: Vec::new(),
         };
         executor
+    }
+
+    pub fn set_query_vec(&mut self, query: &'a std::string::String) {
+        self.query_split = query.split(" ").collect();
     }
 
     pub fn evaluate_query(&mut self) -> String {
@@ -70,8 +77,12 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                 {
                     TokenType::KEYWORD(v) => {
                         if v != Keyword::FROM {
-                            return String::from(
-                                "Keywords found in given Query do not match the query plan",
+                            return format!(
+                                "{}",
+                                SQLError::UnknownQueryType(self.construct_string_from_sql_token(
+                                    selector_keyword_index as i32,
+                                    3
+                                ))
                             );
                         }
                     }
@@ -124,7 +135,10 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                 match self.query_plan[1].clone().get_token_type() {
                     TokenType::KEYWORD(_v) => {}
                     _ => {
-                        return String::from("INSERT query was not able to be executed");
+                        return format!(
+                            "{}",
+                            SQLError::UnknownQueryType(self.construct_string_from_sql_token(1, 3))
+                        );
                     }
                 }
                 let table_name = &self.query_plan[2].get_token_value();
@@ -235,9 +249,39 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
         }
         column_vectors
     }
+
+    pub fn construct_string_from_sql_token(&self, current: i32, range: i32) -> String {
+        let start_diff = (current - range) >= 0;
+        let end_diff = (current + range) <= (self.query_plan.len() - 1) as i32;
+        let mut error_sequence = String::from("");
+        let mut start_index = if start_diff == true {
+            current - range
+        } else {
+            0
+        };
+        let mut end_index = if end_diff == true {
+            current + range
+        } else {
+            (self.query_plan.len() - 1) as i32
+        };
+        if range == 0 {
+            end_index = (self.query_plan.len() - 1) as i32;
+            start_index = 0;
+        }
+        error_sequence.push('\'');
+        for x in start_index..(end_index + 1) {
+            error_sequence.push_str(&self.query_split[x as usize]);
+            if !(x == end_index) {
+                error_sequence.push(' ');
+            }
+        }
+        error_sequence.push('\'');
+        error_sequence
+    }
 }
 
 fn convert_string_to_vec(value: String) -> Vec<String> {
     let value_vec: Vec<&str> = value.split(",").collect();
     return Vec::from_iter(value_vec.iter().map(|v| v.to_string()));
 }
+

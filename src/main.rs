@@ -36,6 +36,7 @@ fn main() {
                         &resulting_token_list[x],
                         storage::disk::disk_table::default_disk_constructor(),
                     );
+                    executor.set_query_vec(input);
                     println!("{}", executor.evaluate_query());
                 }
             }
