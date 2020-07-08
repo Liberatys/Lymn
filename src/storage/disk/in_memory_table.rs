@@ -145,6 +145,12 @@ impl Table for InMemoryTabel {
             None => return false,
         }
     }
+    fn set_table_name(&mut self, _: std::string::String) {
+        todo!()
+    }
+    fn reset_table(&mut self, _: std::string::String, _: std::string::String) -> bool {
+        todo!()
+    }
 }
 
 pub fn default_in_memory_constructor() -> InMemoryTabel {

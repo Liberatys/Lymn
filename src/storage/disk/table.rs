@@ -14,4 +14,6 @@ pub trait Table {
     fn get_columns(&self) -> Vec<String>;
     fn has_column(&self, column_name: &str) -> bool;
     fn insert_row_by_column(&mut self, value_map: HashMap<&str, String>) -> bool;
+    fn set_table_name(&mut self, name: String);
+    fn reset_table(&mut self, table: String, database: String) -> bool;
 }

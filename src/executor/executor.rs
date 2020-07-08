@@ -2,20 +2,20 @@ use super::super::ocarina::token::token::Token;
 use super::super::ocarina::token::token::TokenType;
 use super::super::ocarina::types;
 use super::super::ocarina::types::keyword::Keyword;
-use super::super::storage::disk::disk_table::DiskTable;
 use super::super::storage::disk::io::StorageEntity;
 use super::super::storage::disk::table::Table;
 use super::query_type;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::sync::Mutex;
-pub struct Executor<'a> {
+
+pub struct Executor<'a, T: Table + StorageEntity> {
     query_plan: &'a Vec<Token>,
-    table: DiskTable,
+    table: T,
 }
 
 lazy_static! {
-    static ref CURRENT_INDEX: Mutex<IndexIncrement> = Mutex::new({ IndexIncrement::new() });
+    static ref CURRENT_INDEX: Mutex<IndexIncrement> = Mutex::new(IndexIncrement::new());
 }
 
 struct IndexIncrement {
@@ -36,8 +36,8 @@ impl IndexIncrement {
     }
 }
 
-impl<'a> Executor<'a> {
-    pub fn new(query_plan: &'a std::vec::Vec<Token>, table: DiskTable) -> Self {
+impl<'a, T: Table + StorageEntity> Executor<'a, T> {
+    pub fn new(query_plan: &'a std::vec::Vec<Token>, table: T) -> Self {
         let executor = Executor {
             query_plan: query_plan,
             table: table,
@@ -196,7 +196,7 @@ impl<'a> Executor<'a> {
                                         table_name
                                     ));
                                 }
-                                self.table = DiskTable::new(
+                                self.table.reset_table(
                                     String::from(table_name.clone()),
                                     String::from("data"),
                                 );

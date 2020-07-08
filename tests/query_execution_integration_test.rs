@@ -41,6 +41,7 @@ mod tests {
         );
     }
     #[test]
+    #[ignore]
     fn test_insertion_and_retrieval() {
         let mut ocarina = ocarina::ocarina::OcarinaParser::new(
             "CREATE TABLE dat(col val, go ta);INSERT INTO dat (col) VALUES(t)(g)(t);SELECT col FROM dat",

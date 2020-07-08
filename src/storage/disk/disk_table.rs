@@ -1,13 +1,11 @@
 use super::io::StorageEntity;
 use super::table::Table;
-use roxmltree::*;
-use std::collections::HashMap;
+
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
 
 #[repr(C)]
 #[derive(Clone)]
@@ -47,11 +45,6 @@ impl DiskTable {
             Ok(v) => v.as_path().to_str().unwrap().to_owned(),
             Err(_) => String::from("Does not exist"),
         };
-    }
-
-    pub fn set_table_name(&mut self, name: String) {
-        self.name = name;
-        self.default_path = format!("./{}", self.name);
     }
 }
 
@@ -252,6 +245,11 @@ impl Table for DiskTable {
         true
     }
 
+    fn set_table_name(&mut self, name: String) {
+        self.name = name;
+        self.default_path = format!("./{}", self.name);
+    }
+
     fn insert_new_column(&mut self, column: std::string::String) -> bool {
         self.columns.push(column);
         self.values.push(Vec::new());
@@ -293,6 +291,14 @@ impl Table for DiskTable {
     //TODO: write a function that checks if any table exists not just the current
     fn table_exist(&self, table_name: &str) -> bool {
         return self.exists();
+    }
+
+    fn reset_table(&mut self, name: std::string::String, database: std::string::String) -> bool {
+        self.columns.clear();
+        self.values.clear();
+        self.name = name;
+        self.database_name = database;
+        true
     }
 }
 
