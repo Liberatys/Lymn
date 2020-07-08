@@ -1,20 +1,20 @@
 use super::token;
-use super::token::compressor;
+use super::token::def_compressor;
 use token::determinator::Determinator;
 use token::token::Token;
 
-pub struct OcarinaParser {
+pub struct OcarinaParser<T: Determinator> {
     optimize: bool,
-    pub determinator: Determinator,
-    pub compressor: compressor::Compressor,
+    pub determinator: T,
+    pub compressor: def_compressor::Compressor,
 }
 
-impl OcarinaParser {
-    pub fn new(statement: &str) -> OcarinaParser {
+impl<T: Determinator> OcarinaParser<T> {
+    pub fn new(determinator: T) -> Self {
         let parser = OcarinaParser {
             optimize: false,
-            determinator: Determinator::new(statement.to_owned()),
-            compressor: compressor::Compressor::new(),
+            determinator: determinator,
+            compressor: def_compressor::Compressor::new(),
         };
         return parser;
     }
@@ -32,6 +32,7 @@ impl OcarinaParser {
     pub fn generate_token_list(&mut self) {
         self.determinator
             .iterate_over_query_and_collect_token_list();
+        //self.sanitize_query();
     }
 
     pub fn compress_token_list(mut self) -> Vec<Vec<Token>> {
@@ -42,9 +43,5 @@ impl OcarinaParser {
             token_list[x] = self.compressor.get_token_list();
         }
         return token_list;
-    }
-
-    pub fn determine_type_of_token(&mut self) {
-        unimplemented!();
     }
 }

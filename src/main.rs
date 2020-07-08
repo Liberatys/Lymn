@@ -4,8 +4,7 @@ use std::io;
 mod executor;
 mod ocarina;
 mod storage;
-use storage::disk::io::StorageEntity;
-use storage::disk::table::Table;
+use ocarina::token::def_determinator::DefDeterminator;
 
 fn trim_newline(s: &mut String) {
     if s.ends_with('\n') {
@@ -25,7 +24,8 @@ fn main() {
         match stdin.read_line(input) {
             Ok(_) => {
                 trim_newline(input);
-                let mut ocarina = ocarina::ocarina::OcarinaParser::new(input);
+                let mut ocarina =
+                    ocarina::ocarina::OcarinaParser::new(DefDeterminator::new(input.to_owned()));
                 ocarina.generate_token_list();
                 let resulting_token_list = ocarina.compress_token_list();
                 for x in 0..resulting_token_list.len() {

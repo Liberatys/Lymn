@@ -11,15 +11,15 @@ Containing parts of the system:
 - [ ] SQL-Sanatizer
 - [ ] Buffer-Manager
 
-
 ## Example of usage
 
 
 	INSERT INTO [table_name] (optional)(column_names) VALUES(value)
 
-	SELECT (columns | *) FROM [table_name]
+	SELECT (columns | *) FROM [table_name] WHERE [col_name] = [col_value]
 		
 	CREATE TABLE [table_name]([col_name] [col_type],...)
+
 
 
 ## SQL-Parser {Ocarina}

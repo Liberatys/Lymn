@@ -42,7 +42,7 @@ impl DiskTable {
     pub fn convert_path_to_absolute(path: &String) -> String {
         let srcdir = PathBuf::from(path);
         return match fs::canonicalize(&srcdir) {
-            Ok(v) => v.as_path().to_str().unwrap().to_owned(),
+            Ok(v) => v.as_path().to_str().unwrap().trim().to_owned(),
             Err(_) => String::from("Does not exist"),
         };
     }
@@ -86,18 +86,16 @@ impl StorageEntity for DiskTable {
         let mut file = match fs::File::open(&configuration_file) {
             Ok(v) => v,
             Err(e) => {
-                println!("{} 1", e);
                 return false;
             }
         };
         let mut buf_reader = BufReader::new(file);
         let mut contents = String::new();
         buf_reader.read_to_string(&mut contents);
-        //TODO: refactor the marked section ----
+        //TODO: refactor the marked section ====
         let doc = match roxmltree::Document::parse(&contents) {
             Ok(doc) => doc,
             Err(e) => {
-                println!("{} 2", e);
                 return false;
             }
         };
@@ -178,9 +176,9 @@ impl StorageEntity for DiskTable {
         configuration_content.push_str("<columns>");
         configuration_content.push_str("\n");
         for x in &self.columns {
-            let mut current_table_path = DiskTable::convert_path_to_absolute(&self.default_path);
-            current_table_path.push_str(format!("/{}", x).as_ref());
-            println!("{:?}", fs::File::create(&current_table_path));
+            let mut current_table_path =
+                DiskTable::convert_path_to_absolute(&self.default_path.clone());
+            current_table_path.push_str(format!("/{}", x.trim()).as_ref());
             DiskTable::compile_column_definition(&mut configuration_content, x);
         }
         configuration_content.push_str("</columns>");
@@ -296,7 +294,7 @@ impl Table for DiskTable {
     fn reset_table(&mut self, name: std::string::String, database: std::string::String) -> bool {
         self.columns.clear();
         self.values.clear();
-        self.name = name;
+        self.set_table_name(name);
         self.database_name = database;
         true
     }

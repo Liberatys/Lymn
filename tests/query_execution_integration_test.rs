@@ -7,11 +7,14 @@ use Lymn::*;
 
 #[cfg(test)]
 mod tests {
+    use super::ocarina::token::def_determinator;
     use super::*;
     #[test]
     #[ignore]
     fn selection_query_execution_integration() {
-        let mut ocarina = ocarina::ocarina::OcarinaParser::new("SELECT t FROM tab");
+        let mut ocarina = ocarina::ocarina::OcarinaParser::new(
+            def_determinator::DefDeterminator::new("SELECT t FROM tab".to_owned()),
+        );
         ocarina.generate_token_list();
         let resulting_token_list = ocarina.compress_token_list();
         let mut table =
@@ -44,7 +47,7 @@ mod tests {
     #[ignore]
     fn test_insertion_and_retrieval() {
         let mut ocarina = ocarina::ocarina::OcarinaParser::new(
-            "CREATE TABLE dat(col val, go ta);INSERT INTO dat (col) VALUES(t)(g)(t);SELECT col FROM dat",
+            def_determinator::DefDeterminator::new("CREATE TABLE dat(col val, go ta);INSERT INTO dat (col) VALUES(t)(g)(t);SELECT col FROM dat".to_owned())
         );
         ocarina.generate_token_list();
         let resulting_token_list = ocarina.compress_token_list();
@@ -70,7 +73,9 @@ mod tests {
     fn insert_query_execution_integration() {
         //TODO: if tests fails its probably due to a change in the way value insertion is managed /
         //handled
-        let mut ocarina = ocarina::ocarina::OcarinaParser::new("INSERT INTO tab t:value");
+        let mut ocarina = ocarina::ocarina::OcarinaParser::new(
+            def_determinator::DefDeterminator::new("INSERT INTO tab t:value".to_owned()),
+        );
         ocarina.generate_token_list();
         let resulting_token_list = ocarina.compress_token_list();
         let mut table =
