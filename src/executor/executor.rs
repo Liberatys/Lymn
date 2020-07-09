@@ -253,6 +253,14 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                 for ind in 0..values_to_query[0].len() {
                     //implement trait for operator that checks if the logic behind the operator is
                     //satisfied
+                    //
+                    println!(
+                        "{}",
+                        operator.evaluates_to_true(vec![
+                            &values_to_query[query_plan_col_index][ind],
+                            col_value
+                        ])
+                    );
                     if operator.evaluates_to_true(vec![
                         &values_to_query[query_plan_col_index][ind],
                         col_value,

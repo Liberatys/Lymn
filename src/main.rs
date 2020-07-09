@@ -37,6 +37,7 @@ fn main() {
                     if resulting_token_list[x].len() == 0 {
                         continue;
                     }
+                    println!("{:?}", &resulting_token_list[x]);
                     let mut executor = executor::executor::Executor::new(
                         &resulting_token_list[x],
                         storage::disk::disk_table::default_disk_constructor(),

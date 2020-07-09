@@ -94,10 +94,33 @@ impl determinator::Determinator for DefDeterminator {
                         self.current_token_buffer.clear();
                     }
                     self.current_token_buffer.push(current_character);
-                    self.token_list[self.current_token_list_index].push(token_builder(
-                        self.current_token_buffer.clone().as_ref(),
-                        TokenType::OPERATOR(Operator::LESS),
-                    ));
+                    let next_character = self.traverser.peek(1);
+                    let mut is_other_operator = false;
+                    if next_character.len() > 0 {
+                        if next_character[0] == '>' {
+                            self.current_token_buffer.push(next_character[0]);
+                            self.token_list[self.current_token_list_index].push(token_builder(
+                                self.current_token_buffer.clone().as_ref(),
+                                TokenType::OPERATOR(Operator::NOT_EQUAL),
+                            ));
+                            is_other_operator = true;
+                        } else if next_character[0] == '=' {
+                            self.current_token_buffer.push(next_character[0]);
+                            self.token_list[self.current_token_list_index].push(token_builder(
+                                self.current_token_buffer.clone().as_ref(),
+                                TokenType::OPERATOR(Operator::LESS_OR_EQUAL),
+                            ));
+                            is_other_operator = true;
+                        }
+                    }
+                    if is_other_operator == false {
+                        self.token_list[self.current_token_list_index].push(token_builder(
+                            self.current_token_buffer.clone().as_ref(),
+                            TokenType::OPERATOR(Operator::LESS),
+                        ));
+                    } else {
+                        self.traverser.skip_next_n_indexes(1);
+                    }
                     self.current_token_buffer.clear();
                 }
                 '>' => {
@@ -106,10 +129,26 @@ impl determinator::Determinator for DefDeterminator {
                         self.current_token_buffer.clear();
                     }
                     self.current_token_buffer.push(current_character);
-                    self.token_list[self.current_token_list_index].push(token_builder(
-                        self.current_token_buffer.clone().as_ref(),
-                        TokenType::OPERATOR(Operator::GREATER),
-                    ));
+                    let next_character = self.traverser.peek(1);
+                    let mut is_other_operator = false;
+                    if next_character.len() > 0 {
+                        if next_character[0] == '=' {
+                            self.current_token_buffer.push(next_character[0]);
+                            self.token_list[self.current_token_list_index].push(token_builder(
+                                self.current_token_buffer.clone().as_ref(),
+                                TokenType::OPERATOR(Operator::GREATER_OR_EQUAL),
+                            ));
+                            is_other_operator = true;
+                        }
+                    }
+                    if is_other_operator == false {
+                        self.token_list[self.current_token_list_index].push(token_builder(
+                            self.current_token_buffer.clone().as_ref(),
+                            TokenType::OPERATOR(Operator::GREATER),
+                        ));
+                    } else {
+                        self.traverser.skip_next_n_indexes(1);
+                    }
                     self.current_token_buffer.clear();
                 }
                 ' ' => {

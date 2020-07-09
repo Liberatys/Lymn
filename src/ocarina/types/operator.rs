@@ -39,8 +39,29 @@ impl Operator {
                 }
                 return values[0] > values[1];
             }
+            Operator::GREATER_OR_EQUAL => {
+                if values.len() < 2 {
+                    return false;
+                }
+                return values[0] >= values[1];
+            }
+            Operator::LESS_OR_EQUAL => {
+                if values.len() < 2 {
+                    return false;
+                }
+                return values[0] <= values[1];
+            }
+            Operator::NOT_EQUAL => {
+                if values.len() < 2 {
+                    return false;
+                }
+                return !(values[0] == values[1]);
+            }
             _ => {}
         }
+        println!("{}", true);
         true
     }
 }
+
+//TODO: write tests
