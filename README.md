@@ -5,7 +5,7 @@ a version based on the findings of different literature and proven principles ra
 
 Because this is a side project, I'll name all parts of the system in a funny way, because I can.
 
-Containing parts of the system:
+Parts contained in the system:
 
 - [ ] SQL-Parser {Ocarina}
 - [ ] SQL-Sanatizer
