@@ -13,32 +13,27 @@ Containing parts of the system:
 
 ## Example of usage
 
-
 	INSERT INTO [table_name] (optional)(column_names) VALUES(value)
 
 	SELECT (columns | *) FROM [table_name] WHERE [col_name] = [col_value]
 		
 	CREATE TABLE [table_name]([col_name] [col_type],...)
 
-
-
-## SQL-Parser {Ocarina}
-
-Ocarina is the sql compiler/parser/processor that is turing an sql statement into a query plan
-that then can be executed by the query executor.
-
-Ocarina also performs a basic optimisation of the query. The query is later optimized again by another
-part of the system to ensure that queries run at an reasonable speed in the system.
-
-[Ocarina docu](./docu/ocarina.md)
-
 ## Building
 
+	cargo build
 
 ## Testing
 
+Currently only the unit-tests are run on "cargo test".
+Integration tests are not executed because the file creation is not set up in a way that would
+facilitate the testing.
+
+**If you'd like to test the integration tests you may do so by using the inMemoryTable implementation**
 
 # Disclaimers
 
 Currently only the functionality in the example part is working.
-The storage of the database is currently in memory and is used for testing.
+
+At the moment there is not much validation of input. Therefore a column that doesn't exist will 
+panic the system. -> TAKE CARE!!
