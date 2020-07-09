@@ -19,6 +19,24 @@ Parts contained in the system:
 		
 	CREATE TABLE [table_name]([col_name] [col_type],...)
 
+
+## Display of data
+
+In the current testing loop the return of values in a select query is rendered in a table format
+
+	SELECT * FROM tester
+
+	+-----+--------+
+	| col | column |
+	+-----+--------+
+	| 7   |        |
+	+-----+--------+
+	| 8   | 9      |
+	+-----+--------+
+
+This formating is done with prettytable-rs. -> 
+[Prettytable](https://github.com/phsym/prettytable-rs)
+
 ## Building
 
 	cargo build

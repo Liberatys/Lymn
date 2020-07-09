@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate lazy_static;
 use std::io;
+#[macro_use]
+extern crate prettytable;
 mod executor;
 mod ocarina;
 mod storage;
@@ -24,6 +26,10 @@ fn main() {
         match stdin.read_line(input) {
             Ok(_) => {
                 trim_newline(input);
+                if input == "exit" {
+                    break;
+                }
+                println!("{}", " ");
                 let mut ocarina =
                     ocarina::ocarina::OcarinaParser::new(DefDeterminator::new(input.to_owned()));
                 ocarina.generate_token_list();
@@ -37,7 +43,8 @@ fn main() {
                         storage::disk::disk_table::default_disk_constructor(),
                     );
                     executor.set_query_vec(input);
-                    println!("{}", executor.evaluate_query());
+                    let return_tuple = executor.evaluate_query();
+                    println!("{}", return_tuple.0);
                 }
             }
             Err(_) => println!("{}", "help"),

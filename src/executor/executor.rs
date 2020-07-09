@@ -6,6 +6,7 @@ use super::super::storage::disk::io::StorageEntity;
 use super::super::storage::disk::table::Table;
 use super::query_type;
 use super::sql_error::SQLError;
+use super::table_printer;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::sync::Mutex;
@@ -52,32 +53,41 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
         self.query_split = query.split(" ").collect();
     }
 
-    pub fn evaluate_query(&mut self) -> String {
+    pub fn evaluate_query(&mut self) -> (String, bool) {
         let query_type =
             query_type::QueryType::from_primary_query_token(self.query_plan[0].clone());
         match query_type {
             query_type::QueryType::NONE => {
-                return String::from(
-                    "The given query was not able to be recognized as a valid query",
+                return (
+                    String::from("The given query was not able to be recognized as a valid query"),
+                    false,
                 );
             }
             query_type::QueryType::SELECT => {
-                return self.execute_select_query();
+                return (self.execute_select_query(), true);
             }
             query_type::QueryType::INSERT => {
                 if self.query_plan.len() < 4 {
-                    return String::from("To little arguments in the query to execute");
+                    return (
+                        String::from("To little arguments in the query to execute"),
+                        false,
+                    );
                 }
                 match self.query_plan[1].clone().get_token_type() {
                     TokenType::KEYWORD(_v) => {}
                     _ => {
-                        return format!(
-                            "{}",
-                            SQLError::UnknownQueryType(self.construct_string_from_sql_token(1, 3))
+                        return (
+                            format!(
+                                "{}",
+                                SQLError::UnknownQueryType(
+                                    self.construct_string_from_sql_token(1, 3)
+                                )
+                            ),
+                            false,
                         );
                     }
                 }
-                return self.execute_insert_query();
+                return (self.execute_insert_query(), false);
             }
             query_type::QueryType::CREATE => {
                 let creation_type_index = 1;
@@ -101,10 +111,13 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                             TokenType::DATA(types::data_type::DataType::LIST(v)) => {
                                 let column_list = convert_string_to_vec(v);
                                 if self.table.table_exist(&table_name) {
-                                    return String::from(format!(
-                                        "Table: {} already exists",
-                                        table_name
-                                    ));
+                                    return (
+                                        String::from(format!(
+                                            "Table: {} already exists",
+                                            table_name
+                                        )),
+                                        false,
+                                    );
                                 }
                                 self.table.reset_table(
                                     String::from(table_name.clone()),
@@ -113,26 +126,32 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                                 for column in column_list {
                                     let def_vec: Vec<&str> = column.trim().split(" ").collect();
                                     if def_vec.len() > 2 {
-                                        return String::from("Invalid column definition");
+                                        return (String::from("Invalid column definition"), false);
                                     }
                                     self.table.insert_new_column(def_vec[0].to_owned());
                                 }
                                 self.table.create();
                                 self.table.write();
-                                return String::from(format!("Table: {} created", table_name));
+                                return (
+                                    String::from(format!("Table: {} created", table_name)),
+                                    false,
+                                );
                             }
-                            _ => return String::from("Invalid table definition"),
+                            _ => return (String::from("Invalid table definition"), false),
                         }
                     }
                     _ => {
-                        return String::from("CREATE with given argument is not implemented yet");
+                        return (
+                            String::from("CREATE with given argument is not implemented yet"),
+                            false,
+                        );
                     }
                 }
             }
             query_type::QueryType::DELETE => {}
             query_type::QueryType::UPDATE => {}
         }
-        String::from("no error")
+        (String::from("no error"), false)
     }
 
     fn execute_select_query(&mut self) -> String {
@@ -202,7 +221,10 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
             }
         }
         if table_name_index == self.query_plan.len() - 1 {
-            return format!("{:?}", values_to_query);
+            return format!(
+                "{}",
+                table_printer::TablePrinter::print(self.table.get_columns(), values_to_query)
+            );
         }
         if self.query_plan.len() < 8 {
             return String::from("Was not able to identify part after table name");
@@ -228,7 +250,10 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                         }
                     }
                 }
-                return format!("{:?}", new_temp_vec);
+                return format!(
+                    "{}",
+                    table_printer::TablePrinter::print(self.table.get_columns(), new_temp_vec)
+                );
             }
             _ => {}
         }

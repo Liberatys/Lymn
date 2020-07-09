@@ -40,7 +40,7 @@ mod tests {
                     String::from("value")
                 ]
             ),
-            executor.evaluate_query()
+            executor.evaluate_query().0
         );
     }
     #[test]
@@ -64,7 +64,7 @@ mod tests {
                 "{:?}",
                 vec![String::from("t"), String::from("g"), String::from("t"),]
             ),
-            executor.evaluate_query()
+            executor.evaluate_query().0
         );
     }
 
@@ -83,6 +83,6 @@ mod tests {
         table.insert_new_column("t".to_string());
         table.write();
         let mut executor = executor::executor::Executor::new(&resulting_token_list[0], table);
-        assert_eq!("Index: 1", executor.evaluate_query());
+        assert_eq!("Index: 1", executor.evaluate_query().0);
     }
 }
