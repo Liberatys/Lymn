@@ -7,6 +7,9 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
+//TODO: check why a ',' is written as first char into the column file without any reason ?
+//TODO: My guess is that there is a problem with split or join
+
 #[repr(C)]
 #[derive(Clone)]
 pub struct DiskTable {
@@ -46,59 +49,10 @@ impl DiskTable {
             Err(_) => String::from("Does not exist"),
         };
     }
-}
 
-impl StorageEntity for DiskTable {
-    //TODO: implement so that only the difference between two contens is written to file / to disk
-    fn write(&self) -> bool {
-        for x in 0..self.columns.len() {
-            let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
-            configuration_file.push_str(format!("/{}", self.columns[x]).as_ref());
-            let mut file = match OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .open(&configuration_file)
-            {
-                Ok(v) => v,
-                Err(e) => {
-                    println!("{}", e);
-                    return false;
-                }
-            };
-            let mut vec_string = String::new();
-            for t in 0..self.values[x].len() {
-                vec_string.push_str(&self.values[x][t]);
-                if !(t == self.values[x].len() - 1) {
-                    vec_string.push(',');
-                }
-            }
-            file.write_all(vec_string.as_bytes());
-        }
-        true
-    }
-
-    fn read(&mut self) -> bool {
-        if !self.exists() {
-            panic!("Was not able to read from table");
-        }
-        let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
-        configuration_file.push_str("/config.toml");
-        let mut file = match fs::File::open(&configuration_file) {
-            Ok(v) => v,
-            Err(e) => {
-                return false;
-            }
-        };
-        let mut buf_reader = BufReader::new(file);
-        let mut contents = String::new();
-        buf_reader.read_to_string(&mut contents);
-        //TODO: refactor the marked section ====
-        let doc = match roxmltree::Document::parse(&contents) {
-            Ok(doc) => doc,
-            Err(e) => {
-                return false;
-            }
-        };
+    pub fn extract_name_and_columns_from_config(
+        doc: &roxmltree::Document,
+    ) -> (Vec<String>, String) {
         let columns = doc
             .descendants()
             .find(|n| n.has_tag_name("columns"))
@@ -112,10 +66,63 @@ impl StorageEntity for DiskTable {
                 }
             }
         }
-        self.columns = columns_vec;
+        (columns_vec, String::from(" "))
+    }
+}
+
+impl StorageEntity for DiskTable {
+    //TODO: implement so that only the difference between two contens is written to file / to disk
+    fn write(&self) -> bool {
+        for x in 0..self.columns.len() {
+            let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
+            configuration_file.push_str(format!("/{}", self.columns[x]).as_ref());
+            //temp: overwrite file content
+            let mut file = match OpenOptions::new()
+                .write(true)
+                .truncate(true)
+                .open(&configuration_file)
+            {
+                Ok(v) => v,
+                Err(e) => {
+                    println!("{}", e);
+                    return false;
+                }
+            };
+            let vec_string: String;
+            if self.values[x].len() == 1 {
+                vec_string = self.values[x][0].clone();
+            } else {
+                vec_string = self.values[x].join(",");
+            }
+            file.write_all(vec_string.as_bytes());
+        }
+        true
+    }
+
+    fn read(&mut self) -> bool {
+        if !self.exists() {
+            panic!("Was not able to read from table");
+        }
+        let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
+        configuration_file.push_str("/config.toml");
+        let file = match fs::File::open(&configuration_file) {
+            Ok(v) => v,
+            Err(_e) => {
+                return false;
+            }
+        };
+        let mut buf_reader = BufReader::new(file);
+        let mut contents = String::new();
+        buf_reader.read_to_string(&mut contents);
+        let doc = match roxmltree::Document::parse(&contents) {
+            Ok(doc) => doc,
+            Err(e) => {
+                return false;
+            }
+        };
+        self.columns = DiskTable::extract_name_and_columns_from_config(&doc).0;
         let mut data_vec: Vec<Vec<String>> = Vec::new();
         for x in 0..self.columns.len() {
-            let mut current_vec = Vec::new();
             let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
             configuration_file.push_str(format!("/{}", self.columns[x]).as_ref());
             let mut file = match fs::File::open(&configuration_file) {
@@ -128,24 +135,21 @@ impl StorageEntity for DiskTable {
             let mut buf_reader = BufReader::new(file);
             let mut contents = String::new();
             buf_reader.read_to_string(&mut contents);
-            let mut current_string_part = String::new();
-            for character in contents.chars() {
-                if character == ',' {
-                    current_vec.push(current_string_part.clone());
-                    current_string_part.clear();
-                } else {
-                    current_string_part.push(character);
-                }
+            if contents.trim() == "" {
+                data_vec.push(Vec::new());
+                continue;
             }
-            if current_string_part.len() > 0 {
-                current_vec.push(current_string_part);
-            }
-            data_vec.push(current_vec);
+            //convert string into a vec of Vec<String>
+            data_vec.push(
+                contents
+                    .trim()
+                    .split(",")
+                    .collect::<Vec<&str>>()
+                    .into_iter()
+                    .map(|v| v.to_string())
+                    .collect(),
+            );
         }
-        //TODO: ----
-        //
-        //
-        //
         self.values = data_vec;
         true
     }
@@ -179,6 +183,10 @@ impl StorageEntity for DiskTable {
             let mut current_table_path =
                 DiskTable::convert_path_to_absolute(&self.default_path.clone());
             current_table_path.push_str(format!("/{}", x.trim()).as_ref());
+            let new_file = match fs::File::create(&current_table_path) {
+                Ok(v) => v,
+                Err(_) => return false,
+            };
             DiskTable::compile_column_definition(&mut configuration_content, x);
         }
         configuration_content.push_str("</columns>");

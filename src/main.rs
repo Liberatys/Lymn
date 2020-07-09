@@ -29,7 +29,6 @@ fn main() {
                 if input == "exit" {
                     break;
                 }
-                println!("{}", " ");
                 let mut ocarina =
                     ocarina::ocarina::OcarinaParser::new(DefDeterminator::new(input.to_owned()));
                 ocarina.generate_token_list();

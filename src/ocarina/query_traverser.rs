@@ -3,7 +3,6 @@ pub struct QueryTraverser {
     query_length: usize,
     current_index: usize,
 }
-
 impl QueryTraverser {
     pub fn new(query: String) -> QueryTraverser {
         let mut traverser = QueryTraverser {
