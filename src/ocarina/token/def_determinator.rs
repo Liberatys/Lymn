@@ -88,6 +88,30 @@ impl determinator::Determinator for DefDeterminator {
                     self.token_list.push(Vec::new());
                     self.current_token_list_index += 1;
                 }
+                '<' => {
+                    if self.current_token_buffer.len() > 0 {
+                        self.add_token_to_current_token_list(None);
+                        self.current_token_buffer.clear();
+                    }
+                    self.current_token_buffer.push(current_character);
+                    self.token_list[self.current_token_list_index].push(token_builder(
+                        self.current_token_buffer.clone().as_ref(),
+                        TokenType::OPERATOR(Operator::LESS),
+                    ));
+                    self.current_token_buffer.clear();
+                }
+                '>' => {
+                    if self.current_token_buffer.len() > 0 {
+                        self.add_token_to_current_token_list(None);
+                        self.current_token_buffer.clear();
+                    }
+                    self.current_token_buffer.push(current_character);
+                    self.token_list[self.current_token_list_index].push(token_builder(
+                        self.current_token_buffer.clone().as_ref(),
+                        TokenType::OPERATOR(Operator::GREATER),
+                    ));
+                    self.current_token_buffer.clear();
+                }
                 ' ' => {
                     if self.current_token_buffer.len() > 0 {
                         self.add_token_to_current_token_list(None);

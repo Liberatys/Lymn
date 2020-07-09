@@ -17,3 +17,30 @@ pub enum Operator {
     IS(bool, bool),
     AS,
 }
+
+impl Operator {
+    pub fn evaluates_to_true(&self, values: Vec<&str>) -> bool {
+        match self {
+            Operator::EQUAL => {
+                if values.len() < 2 {
+                    return false;
+                }
+                return values[0] == values[1];
+            }
+            Operator::LESS => {
+                if values.len() < 2 {
+                    return false;
+                }
+                return values[0] < values[1];
+            }
+            Operator::GREATER => {
+                if values.len() < 2 {
+                    return false;
+                }
+                return values[0] > values[1];
+            }
+            _ => {}
+        }
+        true
+    }
+}

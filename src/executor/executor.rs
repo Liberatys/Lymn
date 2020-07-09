@@ -230,12 +230,12 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
             return String::from("Was not able to identify part after table name");
         }
         let index_of_where_keyword = 4;
-        //TODO: refactor ====
         match &self.query_plan[index_of_where_keyword]
             .clone()
             .get_token_type()
         {
             TokenType::KEYWORD(Keyword::WHERE) => {
+                //Refactor
                 let col_def = &self.query_plan[5].clone().get_token_value();
                 let col_value = &self.query_plan[7].clone().get_token_value();
                 let query_plan_col_index = self.table.get_index_of_column(col_def);
@@ -243,8 +243,20 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
                 for t in 0..values_to_query.len() {
                     new_temp_vec.push(Vec::new());
                 }
+                let operator_type = self.query_plan[6].clone();
+                let operator = match operator_type.get_token_type() {
+                    TokenType::OPERATOR(v) => v,
+                    _ => {
+                        return String::from("Invalid query after WHERE");
+                    }
+                };
                 for ind in 0..values_to_query[0].len() {
-                    if values_to_query[query_plan_col_index][ind] == col_value.to_owned() {
+                    //implement trait for operator that checks if the logic behind the operator is
+                    //satisfied
+                    if operator.evaluates_to_true(vec![
+                        &values_to_query[query_plan_col_index][ind],
+                        col_value,
+                    ]) {
                         for col_ind in 0..values_to_query.len() {
                             new_temp_vec[col_ind].push(values_to_query[col_ind][ind].clone());
                         }
@@ -261,11 +273,16 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
     }
 
     fn execute_insert_query(&mut self) -> String {
-        let table_name = &self.query_plan[2].get_token_value();
+        let table_name_index = 2;
+        let table_name = &self.query_plan[table_name_index].get_token_value();
         self.table.set_table_name(table_name.to_string());
         self.table.read();
         let index_number_of_columns = self.table.get_columns().len();
-        match &self.query_plan[3].clone().get_token_type() {
+        let type_of_insertion_keyword_index = 3;
+        match &self.query_plan[type_of_insertion_keyword_index]
+            .clone()
+            .get_token_type()
+        {
             TokenType::DATA(types::data_type::DataType::LIST(v)) => {
                 let token_value = v;
                 let mut hash_map: HashMap<&str, String> = HashMap::new();
