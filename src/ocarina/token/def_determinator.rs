@@ -113,6 +113,7 @@ impl determinator::Determinator for DefDeterminator {
                             is_other_operator = true;
                         }
                     }
+
                     if is_other_operator == false {
                         self.token_list[self.current_token_list_index].push(token_builder(
                             self.current_token_buffer.clone().as_ref(),

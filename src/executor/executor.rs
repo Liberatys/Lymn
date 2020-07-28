@@ -9,34 +9,11 @@ use super::sql_error::SQLError;
 use super::table_printer;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use std::sync::Mutex;
 
 pub struct Executor<'a, T: Table + StorageEntity> {
     query_plan: &'a Vec<Token>,
     query_split: Vec<&'a str>,
     table: T,
-}
-
-lazy_static! {
-    static ref CURRENT_INDEX: Mutex<IndexIncrement> = Mutex::new(IndexIncrement::new());
-}
-
-struct IndexIncrement {
-    index: usize,
-}
-
-impl IndexIncrement {
-    pub fn new() -> IndexIncrement {
-        return IndexIncrement { index: 0 };
-    }
-
-    pub fn increment(&mut self) {
-        self.index += 1
-    }
-
-    pub fn get_index(&self) -> usize {
-        return self.index;
-    }
 }
 
 impl<'a, T: Table + StorageEntity> Executor<'a, T> {
@@ -54,8 +31,7 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
     }
 
     pub fn evaluate_query(&mut self) -> (String, bool) {
-        let query_type =
-            query_type::QueryType::from_primary_query_token(self.query_plan[0].clone());
+        let query_type = self.get_query_type();
         match query_type {
             query_type::QueryType::NONE => {
                 return (
@@ -152,6 +128,12 @@ impl<'a, T: Table + StorageEntity> Executor<'a, T> {
             query_type::QueryType::UPDATE => {}
         }
         (String::from("no error"), false)
+    }
+
+    fn get_query_type(&self) -> query_type::QueryType {
+        let query_type =
+            query_type::QueryType::from_primary_query_token(self.query_plan[0].clone());
+        return query_type;
     }
 
     fn execute_select_query(&mut self) -> String {

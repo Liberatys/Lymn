@@ -19,7 +19,7 @@ fn trim_newline(s: &mut String) {
 
 fn main() {
     println!("{}", "Lymn Interface - Version 0.0.1");
-    let mut stdin = io::stdin();
+    let stdin = io::stdin();
     let input = &mut String::new();
     loop {
         input.clear();
@@ -37,7 +37,6 @@ fn main() {
                     if resulting_token_list[x].len() == 0 {
                         continue;
                     }
-                    println!("{:?}", &resulting_token_list[x]);
                     let mut executor = executor::executor::Executor::new(
                         &resulting_token_list[x],
                         storage::disk::disk_table::default_disk_constructor(),

@@ -7,9 +7,6 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
-//TODO: check why a ',' is written as first char into the column file without any reason ?
-//TODO: My guess is that there is a problem with split or join
-
 #[repr(C)]
 #[derive(Clone)]
 pub struct DiskTable {
@@ -18,6 +15,7 @@ pub struct DiskTable {
     pub columns: Vec<String>,
     pub values: Vec<Vec<String>>,
     pub default_path: String,
+    pub change_map: Vec<String>,
 }
 
 impl DiskTable {
@@ -28,9 +26,27 @@ impl DiskTable {
             columns: Vec::new(),
             values: Vec::new(),
             default_path: String::from(""),
+            change_map: Vec::new(),
         };
         table.default_path = format!("./{}", table.name);
         return table;
+    }
+
+    fn has_changed(&self) -> bool {
+        return self.change_map.len() != 0;
+    }
+
+    fn only_appended(&self) -> bool {
+        let mut counted_inserts = 0;
+        self.change_map.iter().map(|v| {
+            if v == "INSERT" {
+                counted_inserts += 1
+            }
+        });
+        if counted_inserts == self.change_map.len() {
+            return true;
+        }
+        return false;
     }
 
     pub fn compile_column_definition(configuration_content: &mut String, col: &String) {
@@ -71,7 +87,6 @@ impl DiskTable {
 }
 
 impl StorageEntity for DiskTable {
-    //TODO: implement so that only the difference between two contens is written to file / to disk
     fn write(&self) -> bool {
         for x in 0..self.columns.len() {
             let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
@@ -88,11 +103,23 @@ impl StorageEntity for DiskTable {
                     return false;
                 }
             };
-            let vec_string: String;
+            if self.only_appended() {
+                file = match OpenOptions::new().write(true).open(&configuration_file) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        println!("{}", e);
+                        return false;
+                    }
+                };
+            }
+            let mut vec_string: String;
             if self.values[x].len() == 1 {
                 vec_string = self.values[x][0].clone();
             } else {
                 vec_string = self.values[x].join(",");
+            }
+            if self.only_appended() {
+                vec_string.insert(0, ',');
             }
             file.write_all(vec_string.as_bytes());
         }
@@ -116,7 +143,7 @@ impl StorageEntity for DiskTable {
         buf_reader.read_to_string(&mut contents);
         let doc = match roxmltree::Document::parse(&contents) {
             Ok(doc) => doc,
-            Err(e) => {
+            Err(_e) => {
                 return false;
             }
         };
@@ -248,6 +275,7 @@ impl Table for DiskTable {
         for x in 0..row.len() {
             self.values[x].push(row[x].to_string());
         }
+        self.change_map.push("INSERT".to_owned());
         true
     }
 
@@ -296,7 +324,11 @@ impl Table for DiskTable {
     }
     //TODO: write a function that checks if any table exists not just the current
     fn table_exist(&self, table_name: &str) -> bool {
-        return self.exists();
+        if self.name == table_name {
+            return self.exists();
+        } else {
+            return false;
+        }
     }
 
     fn reset_table(&mut self, name: std::string::String, database: std::string::String) -> bool {
