@@ -1,15 +1,16 @@
 use super::io::StorageEntity;
 use super::table::Table;
+use leptess::{leptonica, tesseract};
 use printpdf::*;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-
+use execute_command_macro::*;
 #[repr(C)]
 #[derive(Clone)]
-pub struct DiskTable {
+pub struct PDFTable {
     pub name: String,
     pub database_name: String,
     pub columns: Vec<String>,
@@ -18,11 +19,11 @@ pub struct DiskTable {
     pub change_map: Vec<String>,
 }
 
-impl DiskTable {
-    pub fn new(table_name: String, database_name: String) -> DiskTable {
-        let mut table = DiskTable {
+impl PDFTable {
+    pub fn new(table_name: String, database_name: String) -> PDFTable {
+        let mut table = PDFTable {
             name: table_name,
-            database_name: database_name,
+            database_name,
             columns: Vec::new(),
             values: Vec::new(),
             default_path: String::from(""),
@@ -86,38 +87,39 @@ impl DiskTable {
     }
 }
 
-impl StorageEntity for DiskTable {
+impl StorageEntity for PDFTable {
     fn write(&self) -> bool {
         for x in 0..self.columns.len() {
-            let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
-            configuration_file.push_str(format!("/{}", self.columns[x]).as_ref());
-            let mut file = match OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .open(&configuration_file)
-            {
-                Ok(v) => v,
-                Err(e) => {
-                    println!("{}", e);
-                    return false;
-                }
-            };
-            if self.only_appended() {
-                file = match OpenOptions::new().write(true).open(&configuration_file) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        println!("{}", e);
-                        return false;
-                    }
-                };
-            }
+            let mut configuration_file = PDFTable::convert_path_to_absolute(&self.default_path);
+            configuration_file.push_str(format!("/{}.pdf", self.columns[x]).as_ref());
+            let (doc, page1, layer1) = PdfDocument::new(
+                self.columns[x].clone(),
+                Mm(600.0),
+                Mm(700.0),
+                String::from("Layer 1"),
+            );
+            let current_layer = doc.get_page(page1).get_layer(layer1);
+            current_layer.begin_text_section();
+            let font = doc
+                .add_external_font(std::fs::File::open("assets/fonts/RobotoMedium.ttf").unwrap())
+                .unwrap();
             let mut vec_string: String;
             if self.values[x].len() == 1 {
                 vec_string = self.values[x][0].clone();
             } else {
                 vec_string = self.values[x].join(",");
             }
-            file.write_all(vec_string.as_bytes());
+            current_layer.set_font(&font, 10);
+            current_layer.set_text_cursor(Mm(50.0), Mm(500.0));
+            current_layer.set_line_height(33);
+            current_layer.set_text_rendering_mode(TextRenderingMode::Stroke);
+            current_layer.set_character_spacing(10);
+            current_layer.write_text(vec_string, &font);
+            current_layer.end_text_section();
+            doc.save(&mut std::io::BufWriter::new(
+                std::fs::File::create(configuration_file).unwrap(),
+            ))
+                .unwrap();
         }
         true
     }
@@ -126,7 +128,7 @@ impl StorageEntity for DiskTable {
         if !self.exists() {
             panic!("Was not able to read from table");
         }
-        let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
+        let mut configuration_file = PDFTable::convert_path_to_absolute(&self.default_path);
         configuration_file.push_str("/config.toml");
         let file = match fs::File::open(&configuration_file) {
             Ok(v) => v,
@@ -143,20 +145,24 @@ impl StorageEntity for DiskTable {
                 return false;
             }
         };
-        self.columns = DiskTable::extract_name_and_columns_from_config(&doc).0;
+        self.columns = PDFTable::extract_name_and_columns_from_config(&doc).0;
         let mut data_vec: Vec<Vec<String>> = Vec::new();
+        println!("{}", "VALUE 1");
         for x in 0..self.columns.len() {
-            let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
-            configuration_file.push_str(format!("/{}", self.columns[x]).as_ref());
-            let mut file = match fs::File::open(&configuration_file) {
-                Ok(v) => v,
-                Err(e) => {
-                    println!("{}", e);
-                    return false;
-                }
-            };
-            let mut buf_reader = BufReader::new(file);
-            let mut contents = String::new();
+            let mut pdf_file_base = PDFTable::convert_path_to_absolute(&self.default_path);
+            let mut image_file_base = PDFTable::convert_path_to_absolute(&self.default_path);
+            pdf_file_base.push_str(format!("/{}.pdf", self.columns[x]).as_ref());
+            image_file_base.push_str(format!("/{}.jpg", self.columns[x]).as_ref());
+            // find a better way to convert a pdf to an image .... only a quick and dirty fix
+            command!(format!("convert -density 150 {} -quality 90 {}",
+                                              pdf_file_base,
+                                              image_file_base.clone()
+            )).output()
+                .expect("Failed to execute command");
+
+            let mut lt = leptess::LepTess::new(None, "eng").unwrap();
+            lt.set_image(&image_file_base);
+            let mut contents = lt.get_utf8_text().unwrap();
             buf_reader.read_to_string(&mut contents);
             if contents.trim() == "" {
                 data_vec.push(Vec::new());
@@ -187,7 +193,7 @@ impl StorageEntity for DiskTable {
             Err(_) => return false,
         }
         //TODO: implement a method to set the root path
-        let mut configuration_file = DiskTable::convert_path_to_absolute(&self.default_path);
+        let mut configuration_file = PDFTable::convert_path_to_absolute(&self.default_path);
         configuration_file.push_str("/config.toml");
         let mut new_file = match fs::File::create(&configuration_file) {
             Ok(v) => v,
@@ -204,13 +210,13 @@ impl StorageEntity for DiskTable {
         configuration_content.push_str("\n");
         for x in &self.columns {
             let mut current_table_path =
-                DiskTable::convert_path_to_absolute(&self.default_path.clone());
+                PDFTable::convert_path_to_absolute(&self.default_path.clone());
             current_table_path.push_str(format!("/{}", x.trim()).as_ref());
             let new_file = match fs::File::create(&current_table_path) {
                 Ok(v) => v,
                 Err(_) => return false,
             };
-            DiskTable::compile_column_definition(&mut configuration_content, x);
+            PDFTable::compile_column_definition(&mut configuration_content, x);
         }
         configuration_content.push_str("</columns>");
         configuration_content.push_str("</table>");
@@ -219,7 +225,7 @@ impl StorageEntity for DiskTable {
     }
 
     fn exists(&self) -> bool {
-        let abs_path = DiskTable::convert_path_to_absolute(&self.default_path);
+        let abs_path = PDFTable::convert_path_to_absolute(&self.default_path);
         let current_path = Path::new(&abs_path);
         if current_path.exists() {
             if current_path.is_dir() {
@@ -234,7 +240,7 @@ impl StorageEntity for DiskTable {
     }
 
     fn size(&self) -> usize {
-        std::mem::size_of::<DiskTable>()
+        std::mem::size_of::<PDFTable>()
     }
 
     fn backup(&self) -> std::string::String {
@@ -242,7 +248,7 @@ impl StorageEntity for DiskTable {
     }
 }
 
-impl Table for DiskTable {
+impl Table for PDFTable {
     fn load_column_definition(&mut self) -> bool {
         todo!()
     }
@@ -275,20 +281,28 @@ impl Table for DiskTable {
         true
     }
 
-    fn set_table_name(&mut self, name: String) {
-        self.name = name;
-        self.default_path = format!("./{}", self.name);
-    }
-
     fn insert_new_column(&mut self, column: std::string::String) -> bool {
         self.columns.push(column);
         self.values.push(Vec::new());
         true
     }
+
     fn get_index_of_column(&self, name: &str) -> usize {
         let index = self.columns.iter().position(|r| r == name).unwrap();
         return index;
     }
+    //TODO: write a function that checks if any table exists not just the current
+    fn table_exist(&self, table_name: &str) -> bool {
+        return if self.name == table_name {
+            self.exists()
+        } else {
+            false
+        };
+    }
+    fn get_columns(&self) -> Vec<String> {
+        return self.columns.clone();
+    }
+
     fn has_column(&self, column_name: &str) -> bool {
         let index: i32 = match self.columns.iter().position(|r| r == column_name) {
             Some(v) => v as i32,
@@ -299,7 +313,6 @@ impl Table for DiskTable {
         }
         return true;
     }
-
     fn insert_row_by_column(&mut self, value_map: std::collections::HashMap<&str, String>) -> bool {
         let mut value_vec: Vec<String> = Vec::new();
         for key in self.columns.iter() {
@@ -315,16 +328,9 @@ impl Table for DiskTable {
         }
         true
     }
-    fn get_columns(&self) -> Vec<String> {
-        return self.columns.clone();
-    }
-    //TODO: write a function that checks if any table exists not just the current
-    fn table_exist(&self, table_name: &str) -> bool {
-        if self.name == table_name {
-            return self.exists();
-        } else {
-            return false;
-        }
+    fn set_table_name(&mut self, name: String) {
+        self.name = name;
+        self.default_path = format!("./{}", self.name);
     }
 
     fn reset_table(&mut self, name: std::string::String, database: std::string::String) -> bool {
@@ -336,6 +342,6 @@ impl Table for DiskTable {
     }
 }
 
-pub fn default_disk_constructor() -> DiskTable {
-    return DiskTable::new(String::from(" "), String::from(" "));
+pub fn default_disk_constructor() -> PDFTable {
+    return PDFTable::new(String::from(" "), String::from(" "));
 }
