@@ -1,8 +1,11 @@
 #[macro_use]
 extern crate lazy_static;
 use std::io;
+extern crate printpdf;
 #[macro_use]
 extern crate prettytable;
+extern crate leptess;
+
 mod executor;
 mod ocarina;
 mod storage;
@@ -39,7 +42,7 @@ fn main() {
                     }
                     let mut executor = executor::executor::Executor::new(
                         &resulting_token_list[x],
-                        storage::disk::disk_table::default_disk_constructor(),
+                        storage::disk::pdf_table::default_disk_constructor(),
                     );
                     executor.set_query_vec(input);
                     let return_tuple = executor.evaluate_query();

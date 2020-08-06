@@ -7,7 +7,8 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use execute_command_macro::*;
+use std::process::Command;
+
 #[repr(C)]
 #[derive(Clone)]
 pub struct PDFTable {
@@ -109,7 +110,7 @@ impl StorageEntity for PDFTable {
             } else {
                 vec_string = self.values[x].join(",");
             }
-            current_layer.set_font(&font, 10);
+            current_layer.set_font(&font, 30);
             current_layer.set_text_cursor(Mm(50.0), Mm(500.0));
             current_layer.set_line_height(33);
             current_layer.set_text_rendering_mode(TextRenderingMode::Stroke);
@@ -147,22 +148,19 @@ impl StorageEntity for PDFTable {
         };
         self.columns = PDFTable::extract_name_and_columns_from_config(&doc).0;
         let mut data_vec: Vec<Vec<String>> = Vec::new();
-        println!("{}", "VALUE 1");
         for x in 0..self.columns.len() {
-            let mut pdf_file_base = PDFTable::convert_path_to_absolute(&self.default_path);
-            let mut image_file_base = PDFTable::convert_path_to_absolute(&self.default_path);
-            pdf_file_base.push_str(format!("/{}.pdf", self.columns[x]).as_ref());
-            image_file_base.push_str(format!("/{}.jpg", self.columns[x]).as_ref());
+            let mut pdf_file_base = String::new();
+            let mut image_file_base = String::new();
+            pdf_file_base.push_str(format!("{}.pdf", self.columns[x]).as_ref());
+            image_file_base.push_str(format!("{}.jpg", self.columns[x]).as_ref());
             // find a better way to convert a pdf to an image .... only a quick and dirty fix
-            command!(format!("convert -density 150 {} -quality 90 {}",
-                                              pdf_file_base,
-                                              image_file_base.clone()
-            )).output()
-                .expect("Failed to execute command");
-
+            Command::new("convert").arg(pdf_file_base).arg(image_file_base.clone()).current_dir(PDFTable::convert_path_to_absolute(&self.default_path)).status().expect("Failed to execute command");
             let mut lt = leptess::LepTess::new(None, "eng").unwrap();
+            image_file_base = PDFTable::convert_path_to_absolute(&self.default_path);
+            image_file_base.push_str(format!("/{}.jpg", self.columns[x]).as_ref());
             lt.set_image(&image_file_base);
             let mut contents = lt.get_utf8_text().unwrap();
+            println!("{}",contents);
             buf_reader.read_to_string(&mut contents);
             if contents.trim() == "" {
                 data_vec.push(Vec::new());

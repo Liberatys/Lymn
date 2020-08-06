@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<table>
+<name>User</name>
+<columns>
+<column>
+<name>username</name>
+</column>
+<column>
+<name>password</name>
+</column>
+</columns></table>

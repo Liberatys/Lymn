@@ -55,3 +55,12 @@ Currently only the functionality in the example part is working.
 
 At the moment there is not much validation of input. Therefore a column that doesn't exist will 
 panic the system. -> TAKE CARE!!
+
+## Example
+CREATE TABLE User(username string, password string);
+INSERT INTO User VALUES('Your','Password');
+SELECT * FROM User;
+
+## Required
+* tesseract
+* imagemagick

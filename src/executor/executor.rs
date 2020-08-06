@@ -19,8 +19,8 @@ pub struct Executor<'a, T: Table + StorageEntity> {
 impl<'a, T: Table + StorageEntity> Executor<'a, T> {
     pub fn new(query_plan: &'a std::vec::Vec<Token>, table: T) -> Self {
         let executor = Executor {
-            query_plan: query_plan,
-            table: table,
+            query_plan,
+            table,
             query_split: Vec::new(),
         };
         executor
