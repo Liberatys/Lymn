@@ -1,0 +1,3 @@
+#!/bin/sh
+rustup toolchain install nightly-2018-12-27
+rustup component add clippy --toolchain nightly-2018-12-27-x86_64-apple-darwin
