@@ -58,9 +58,15 @@ panic the system. -> TAKE CARE!!
 
 ## Example
 CREATE TABLE User(username string, password string);
+
 INSERT INTO User VALUES('Your','Password');
+
 SELECT * FROM User;
+
 
 ## Required
 * tesseract
 * imagemagick
+
+## Video of PDF storage with OCR
+https://youtu.be/OLkc3ieJFYs
